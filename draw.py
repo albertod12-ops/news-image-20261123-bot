@@ -386,6 +386,7 @@ def art(key, w, h):
         for a, b, c, e in ((30, 34, 52, 48), (52, 50, 74, 66),
                            (30, 54, 44, 66)):
             d.ellipse((a, b, c, e), fill=(60, 180, 90))
+        seg(d, [(22, 53), (80, 53)], "white", 1)
         box(d, 132, 14, 142, 62, "white")
         d.rectangle((132, 14, 142, 62), outline=(20, 20, 20))
         box(d, 134, 16, 140, 62, (220, 30, 40))
@@ -428,6 +429,7 @@ def art(key, w, h):
             burst(d, bx, by, 10, 4, (255, 200, 60))
             burst(d, bx, by, 5, 2, (255, 140, 40))
             disc(d, bx, by, 3, "white")
+            ring(d, bx - 8, by - 8, bx + 8, by + 8, "white", 1)
         # burning tanker, right of the island
         poly(d, [(180, 60), (232, 60), (224, 68), (188, 68)], (30, 30, 40))
         box(d, 188, 48, 202, 60, "white")
@@ -449,8 +451,8 @@ def art(key, w, h):
         # with columns and a gold cupola, seat bar bottom-right:
         # 258 blue against 177 red.
         box(d, 0, 0, w, h, MIDNIGHT)
-        for sx, sy in ((22, 10), (70, 16), (140, 8), (210, 14),
-                       (280, 8), (340, 16), (378, 10)):
+        for sx, sy in ((22, 30), (70, 30), (210, 30), (280, 30),
+                       (340, 30), (378, 30)):
             disc(d, sx, sy, 1, "white")
         d.ellipse((99, 20, 195, 68), fill="white")
         box(d, 97, 48, 197, 66, "white")
@@ -767,6 +769,9 @@ def art(key, w, h):
         seg(d, [(30, 48), (30, 62)], (60, 60, 60), 2)
         box(d, 22, 42, 38, 50, "white")
         seg(d, [(24, 46), (36, 46)], (20, 20, 20), 2)
+        seg(d, [(164, 48), (164, 62)], (60, 60, 60), 2)
+        box(d, 156, 42, 172, 50, "white")
+        seg(d, [(158, 46), (170, 46)], (20, 20, 20), 2)
     else:
         raise ValueError("unknown art: %s" % key)
     return img.resize((w, h), Image.LANCZOS)
