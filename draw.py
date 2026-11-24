@@ -1110,8 +1110,11 @@ def build():
     # to fill the full width left-to-right (MX..RX, 1000px).
     # Rendered on a layer at LiberationSerif-Bold 23 (natural
     # width 975px), cropped to its ink, then stretched to exactly
-    # 1000px wide and pasted so the ink top sits at y=114 (the
-    # masthead ink ends at 110; the region bar is at 150).
+    # 1000px wide and pasted so the ink top sits at y=120 (the
+    # masthead ink ends at 110 ("y" descenders to 114); the region
+    # bar is at 150. v3.7: kicker lowered 5px (ink top y=120) so
+    # there is a clear gap under the "y" descender — the v3.5/3.6
+    # paste at y=114 put the kicker ink right against it.
     kicker = ("COP31 ends without a climate pact · Iran vows to "
               "break the blockade · Democrats win 258 seats")
     klayer = Image.new("RGBA", (1100, 60), (0, 0, 0, 0))
@@ -1119,7 +1122,7 @@ def build():
     kd.text((0, 0), kicker, font=TY.kickbold, fill=SCARLET + (255,))
     kb = klayer.getbbox()
     kcrop = klayer.crop(kb).resize((1000, kb[3] - kb[1]), Image.LANCZOS)
-    img.paste(kcrop, (MX, 114), kcrop)
+    img.paste(kcrop, (MX, 119), kcrop)
     # ---- region bar 150-168: seven SEPARATE boxes, 18px tall with
     # 12px text (bagarte's size), each sized to its text with
     # wider padding, ~7px white gaps, the whole row centred
@@ -1144,13 +1147,15 @@ def build():
     # which is why it read as "just a red UTC box". A small RED box
     # for "UTC" at the left, then the six time+event pairs (gold
     # bold times, white events, middot separators) spread across
-    # the band. The band runs MX..1000 and never touches the right
-    # grey border line (RX=1012).
+    # the band. v3.7: the band runs MX..RX EDGE TO EDGE like
+    # bagarte (the v3.6 "ends 12px short of the grey border" is
+    # reversed on the user's order), and the red UTC box is
+    # SMALLER (26x14, centred in the band, was 34x20 full-height).
     tl_y = 172
     tl_h = 20
-    box(d, MX, tl_y, 1000, tl_y + tl_h, MIDNIGHT)
-    box(d, MX, tl_y, MX + 34, tl_y + tl_h, SCARLET)
-    txt(d, (MX + 17, tl_y + tl_h // 2), "UTC", TY.src, "white",
+    box(d, MX, tl_y, RX, tl_y + tl_h, MIDNIGHT)
+    box(d, MX, tl_y + 3, MX + 26, tl_y + 17, SCARLET)
+    txt(d, (MX + 13, tl_y + 10), "UTC", TY.src, "white",
         anchor="mm")
     timeline = [("05:30", "Modi meets Shah"),
                 ("06:00", "COP31 ends, no deal"),
@@ -1160,7 +1165,7 @@ def build():
                 ("19:00", "Democrats clinch 258")]
     # Natural width of all items + separators; the slack is spread
     # evenly into the five gaps (remainder to the first gaps) so
-    # the last item ends exactly at x=1000.
+    # the last item ends exactly at RX (edge to edge, v3.7).
     sep = "  ·  "
     sepw = int(d.textlength(sep, font=TY.tl))
     nat = 0
@@ -1168,11 +1173,11 @@ def build():
         nat += int(d.textlength(tt, font=TY.tl))
         nat += int(d.textlength(" " + ev, font=TY.tlev))
     nat += sepw * (len(timeline) - 1)
-    extra = (1000 - (MX + 42)) - nat
+    extra = (RX - (MX + 34)) - nat
     ngap = len(timeline) - 1
     gap = extra // ngap if ngap else 0
     rem = extra % ngap if ngap else 0
-    tx = MX + 42
+    tx = MX + 34
     for i, (tt, ev) in enumerate(timeline):
         txt(d, (tx, tl_y + tl_h // 2), tt, TY.tl, GILT, anchor="lm")
         tx += int(d.textlength(tt, font=TY.tl))
