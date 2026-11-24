@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Front page for Monday 23 November 2026 — v3.
+"""Front page for Monday 23 November 2026 — v3.1.
 
-Rebuilt on the sum-22 top-1 (bagarte, final #1) layout, exactly:
-oversized serif date masthead with a "THE WORLD IN ONE DAY" strip,
-red italic kicker, coloured region bar, single-line UTC timeline,
-three numbered hero stories beside a dark-navy THE DAY IN NUMBERS
-box (six big figures), ten small stories in two rows of five with
-big-number anchors (pandya's device), an ALSO list and a dotted
-world map, a red DATE CHECK box, and a HOW SURE footer.
+Exact-match revision of v3 on the sum-22 top-1 (bagarte, final #1)
+layout: oversized serif date masthead with a "THE WORLD IN ONE
+DAY" strip, red italic kicker, coloured region bar, single-line
+UTC timeline, three numbered hero stories (each a detailed drawn
+scene) beside a dark-navy THE DAY IN NUMBERS box (six big
+figures), ten small stories in two rows of five, each led by a
+mini scene illustration (bagarte — no badges), an ALSO list and a
+light dotted world map, a red DATE CHECK box, and a HOW SURE
+footer.
 
 Renders entry.png (1024x1024, byte-stable) from world.geo.json.
 Usage: python3 draw.py
@@ -149,16 +151,16 @@ FRONT = [
      "Iran vows to break the US blockade",
      "Tehran vows to end the blockade 'by all means'; IRGC claims "
      "radar hits in Bahrain; Houthis claim a refinery strike.",
-     "BREAK THE BLOCKADE", "25 TANKERS HIT", "gulfwar", "REPORTED"),
+     "BREAK THE BLOCKADE", "2 TANKERS HIT", "gulfwar", "REPORTED"),
     (3, "WASHINGTON", "POLITICS", "AP · REUTERS", "REPORTED",
      "Democrats win 258 House seats",
      "Hubbard flips a North Carolina seat on recount; largest "
      "Democratic majority since 1992.",
      "258 SEATS", "BIGGEST SINCE 1992", "house258", "REPORTED"),
     (4, "SANTA CLARA", "TECH", "REUTERS · AP", "REPORTED",
-     "Nvidia brings back Huang; shares jump 31%",
-     "Huang returns as CEO 11 days after resigning.",
-     "+31%", "HUANG RETURNS", "shares", "REPORTED"),
+     "Nvidia pressed on chips diverted to China",
+     "Bessent seeks answers on chips sent to China.",
+     "CHIP PROBE", "CHINA DIVERSION", "chip", "REPORTED"),
     (5, "CIKANDE", "DISASTER", "XINHUA · DETIK", "REPORTED",
      "Factory fire toll climbs to 24 dead",
      "24 bodies found, about 30 still missing.",
@@ -203,7 +205,7 @@ FRONT = [
 # 310px column (288px of text) at 11px bold. All 16 are Monday stories.
 ALSO = [
     (14, "Antalya", "COP31 chief blames EU", "REUTERS"),
-    (15, "New York", "Global stocks soar on Nvidia's return", "AP"),
+    (15, "Riyadh", "Houthi missile downed", "REUTERS"),
     (16, "Tehran", "Singer Parastoo Ahmadi gets 74 lashes", "AP"),
     (17, "Washington", "Trump blasts Newsom", "AP"),
     (18, "Kyiv", "Zelensky urges four-way peace talks", "REUTERS"),
@@ -223,10 +225,10 @@ ALSO = [
 # Six numbers for the dark-navy box — one big figure per top story.
 STATS = [
     ("258", "House seats clinched"),
-    ("+31%", "Nvidia shares jump"),
+    ("$2BN", "Nepal aid package"),
     ("24", "dead in Cikande fire"),
     ("7", "drones sank Merkury"),
-    ("25", "tankers hit in a week"),
+    ("2", "tankers hit in Hormuz"),
     ("2 DAYS", "COP31 overtime"),
 ]
 
@@ -377,6 +379,16 @@ def art(key, w, h):
         txt(d, (212, 64), "NO", TY.amidsm, SCARLET, anchor="ma")
         box(d, 150, 80, 262, 102, WINE)
         txt(d, (206, 91), "NO DEAL", TY.amid, "white", anchor="mm")
+        # wall clock and delegates along the foot: a scene with
+        # people, not just icons.
+        disc(d, 18, 14, 9, "white", outline=(20, 20, 20), width=1)
+        seg(d, [(18, 14), (18, 7)], (20, 20, 20), 1)
+        seg(d, [(18, 14), (23, 16)], (20, 20, 20), 1)
+        for fx, shirt in ((14, (200, 60, 40)), (54, (40, 90, 160)),
+                          (94, (240, 200, 60)), (134, (30, 120, 90))):
+            disc(d, fx + 6, 90, 5, (220, 180, 140))
+            poly(d, [(fx, 105), (fx + 12, 105), (fx + 10, 96),
+                     (fx + 2, 96)], shirt)
     elif key == "gulfwar":
         # Lead 2: the Gulf at war, as a map. Iran coast on top,
         # Arabian coast below, Bahrain with two base bursts, dashed
@@ -419,6 +431,17 @@ def art(key, w, h):
         seg(d, [(196, 44), (252, 44)], "white")
         txt(d, (224, 50), "5TH FLEET", TY.amidsm, "white", anchor="ma",
             stroke=1, stroke_fill=(0, 0, 0))
+        # sea texture, a second vessel, a radar mast on Bahrain,
+        # and smoke over the burning tanker.
+        for wx in range(8, 168, 26):
+            seg(d, [(wx, 68), (wx + 12, 68)], (180, 200, 220), 1)
+        poly(d, [(28, 58), (58, 58), (52, 64), (34, 64)], (90, 95, 105))
+        box(d, 38, 50, 48, 58, (120, 125, 135))
+        seg(d, [(43, 50), (43, 44)], (120, 125, 135), 2)
+        seg(d, [(136, 30), (136, 18)], (60, 60, 60), 2)
+        seg(d, [(130, 18), (142, 14)], (60, 60, 60), 2)
+        for sx, sy, sr in ((196, 36, 5), (190, 30, 6), (198, 26, 4)):
+            disc(d, sx, sy, sr, (120, 120, 126))
     elif key == "house258":
         # Lead 3: the US House flips. Navy hall, white Capitol dome
         # with columns and a gold cupola, seat bar bottom-right:
@@ -440,6 +463,18 @@ def art(key, w, h):
         txt(d, (245, 89), "177", TY.amidsm, "white", anchor="mm")
         txt(d, (10, 8), "THE HOUSE", TY.amidsm, GILT)
         txt(d, (284, 8), "SINCE 1992", TY.amidsm, GILT, anchor="ra")
+        # a flag on the left, steps under the dome, and windows on
+        # the dome: a fuller scene.
+        seg(d, [(30, 18), (30, 72)], (200, 200, 210), 2)
+        box(d, 30, 18, 58, 30, (200, 40, 50))
+        for sy in (22, 26):
+            seg(d, [(30, sy), (58, sy)], "white", 1)
+        box(d, 30, 18, 42, 24, (40, 60, 140))
+        disc(d, 36, 21, 1, "white")
+        for sy in (73, 77, 81):
+            seg(d, [(85, sy), (210, sy)], (180, 180, 190), 2)
+        for wx, wy in ((120, 40), (147, 35), (174, 40)):
+            disc(d, wx, wy, 2, MIDNIGHT)
     elif key == "shipfire":
         # Sparta II ablaze off Finland: grey sea, dark cargo ship,
         # container stack, white bridge, deck fire, two drones.
@@ -510,21 +545,27 @@ def art(key, w, h):
         poly(d, [(84, 52), (94, 62), (98, 52)], (40, 90, 160))
         for wx in (84, 118):
             disc(d, wx, 58, 4, (20, 20, 20))
-    elif key == "shares":
-        # Nvidia shares jump on Huang's return: dark board, a steep
-        # rising chart line, green arrow, the gain as the picture.
+    elif key == "chip":
+        # Nvidia pressed on chips diverted to China: dark board, big
+        # green AI chip with gold pins, red arrow to a red flag.
         box(d, 0, 0, w, h, (16, 24, 44))
-        for gy in range(14, h, 12):
-            seg(d, [(0, gy), (w, gy)], (30, 40, 60))
-        for gx in range(14, w, 18):
-            seg(d, [(gx, 0), (gx, h)], (30, 40, 60))
-        pts = [(10, 66), (40, 60), (70, 64), (100, 46), (130, 50),
-               (160, 28), (186, 16)]
-        for i in range(len(pts) - 1):
-            seg(d, [pts[i], pts[i + 1]], (60, 200, 90), 3)
-        for px, py in pts:
-            disc(d, px, py, 3, (60, 200, 90))
-        poly(d, [(186, 16), (176, 14), (176, 22)], (60, 200, 90))
+        for ty in range(24, h, 14):
+            seg(d, [(0, ty), (w, ty)], (30, 40, 60))
+        box(d, 30, 26, 78, 62, (16, 140, 80))
+        d.rectangle((30, 26, 78, 62), outline=(60, 200, 120), width=2)
+        for px in (36, 48, 60, 72):
+            seg(d, [(px, 22), (px, 26)], GILT, 2)
+            seg(d, [(px, 62), (px, 66)], GILT, 2)
+        for py in (32, 44, 56):
+            seg(d, [(26, py), (30, py)], GILT, 2)
+            seg(d, [(78, py), (82, py)], GILT, 2)
+        txt(d, (54, 44), "AI", TY.amid, "white", anchor="mm")
+        seg(d, [(84, 44), (120, 30), (150, 36)], SCARLET, 3)
+        poly(d, [(150, 36), (140, 30), (140, 42)], SCARLET)
+        box(d, 156, 26, 186, 46, (200, 30, 40))
+        burst(d, 171, 36, 6, 2, (255, 210, 31))
+        txt(d, (54, 74), "WHERE DID THEY GO?", TY.slabssm, "white",
+            anchor="ma")
     elif key == "sanctions":
         # US sanctions Iranian shadow banking: a ledger page, a red
         # stamp, a chain of blocked accounts.
@@ -664,11 +705,11 @@ def hero_card(img, d, story, x, y, w):
 
 
 def small_card(img, d, story, x, y):
-    """A small card, 146 tall (bagarte + pandya): 60px art with a
-    number+place bar, a status pill, and a big-number badge (the
-    story's big label, white on black, centred in the art), a topic
-    line, a 2-line 15px serif headline and a 2-line 11px serif deck
-    with its source, inside a 1px ink box."""
+    """A small card, 146 tall (bagarte): 60px mini scene illustration
+    with a number+place bar and a status pill, a topic line, a 2-line
+    15px serif headline and a 2-line 11px serif deck with its source,
+    inside a 1px ink box. No badge: the scene shows fully, as in
+    bagarte's smalls."""
     num, place, topic, src, _st, head, deck, big, small, key, vtag = story
     w = SW
     box(d, x, y, x + w, y + SH, PANEL)
@@ -676,17 +717,6 @@ def small_card(img, d, story, x, y):
     img.paste(pic, (x, y))
     d2 = ImageDraw.Draw(img)
     topbar(d2, x, y, w, num, place, vtag)
-    # big-number badge, centred in the art below the top bar
-    fb = TY.bignum
-    while d.textlength(big, font=fb) > w - 24 and fb.size > 14:
-        fb = ImageFont.truetype(
-            os.path.join(NOTO, "NotoSans-Black.ttf"), fb.size - 1)
-    bw = int(d.textlength(big, font=fb)) + 16
-    bx0 = x + (w - bw) // 2
-    by0 = y + 24
-    d2.rounded_rectangle((bx0, by0, bx0 + bw, by0 + 30), radius=3,
-                         fill=(10, 10, 14))
-    txt(d2, (bx0 + bw // 2, by0 + 15), big, fb, "white", anchor="mm")
     ty = y + SA + 5
     txt(d, (x + 8, ty), topic, TY.topicsm, BLACK)
     hl = wrap(d, head, TY.shead, w - 16, 2)
@@ -763,14 +793,15 @@ def draw_map(d, x0, y0, w, h):
         return y0 + (90.0 - lat) / 180.0 * h
 
     box(d, x0, y0, x0 + w, y0 + h, SEA)
-    # dotted land: 3px grid, 1.5px dots where inside a land polygon
-    step = 3
+    # dotted land: sparse light-grey dots where inside a land
+    # polygon (bagarte: airy, continents readable but light).
+    step = 4
     for gy in range(2, h, step):
         lat = 90.0 - (gy / h) * 180.0
         for gx in range(2, w, step):
             lon = (gx / w) * 360.0 - 180.0
             if _inside(lon, lat, polys):
-                disc(d, x0 + gx, y0 + gy, 1.5, (50, 50, 50))
+                disc(d, x0 + gx, y0 + gy, 1.0, (150, 150, 150))
     for num, (lon, lat) in DOTS.items():
         tx, ty = px(lon), py(lat)
         ox, oy = DOT_OFF.get(num, (0, 0))
@@ -829,7 +860,7 @@ def build():
                 ("06:00", "COP31 ends, no deal"),
                 ("09:00", "Iran vows blockade break"),
                 ("11:00", "Cikande toll at 24"),
-                ("14:30", "Huang reinstated"),
+                ("14:30", "Nvidia chip probe"),
                 ("19:00", "Democrats clinch 258")]
     tx = 66
     for i, (tt, ev) in enumerate(timeline):
