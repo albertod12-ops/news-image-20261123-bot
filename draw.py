@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""Front page for Monday 23 November 2026.
+"""Front page for Monday 23 November 2026 — v3.
+
+Rebuilt on the sum-22 top-1 (bagarte, final #1) layout, exactly:
+oversized serif date masthead with a "THE WORLD IN ONE DAY" strip,
+red italic kicker, coloured region bar, single-line UTC timeline,
+three numbered hero stories beside a dark-navy THE DAY IN NUMBERS
+box (six big figures), ten small stories in two rows of five with
+big-number anchors (pandya's device), an ALSO list and a dotted
+world map, a red DATE CHECK box, and a HOW SURE footer.
 
 Renders entry.png (1024x1024, byte-stable) from world.geo.json.
 Usage: python3 draw.py
 
-A broadsheet: oversized serif date masthead, red deck, numbers strip,
-region bar, UTC timeline, three lead stories, fifteen small cards in
-three rows of five, a light world map next to an 18-item also-list, a
-red date-check box, and a sources footer with a verification legend.
-
-All 36 items happened, or were first reported, on Monday 23 November
-2026, checked live against the wires (Reuters, AP, AFP, BBC, Al
-Jazeera, Guardian, Detik, Xinhua, IANS, Yonhap, ABC and others). The
-pictures are flat vector shapes drawn here, the words are written here;
-nothing is photographed, pasted, or copied in.
+All 29 items happened, or were first reported, on Monday 23
+November 2026, checked live against the wires (Reuters, AP, AFP,
+BBC, Al Jazeera, Guardian, Detik, Xinhua, IANS, Yonhap, ABC,
+ESPN, UKMTO, WHO and others). Stories that belong to an earlier
+day are named in DATE CHECK, not drawn. The pictures are flat
+vector shapes drawn here, the words are written here; nothing is
+photographed, pasted, or copied in.
 
 No clock, no dice, no network: repeated runs emit identical bytes.
 Pillow is needed only to draw; the graded entrypoint (main.py) is a
@@ -44,6 +49,7 @@ LEAF = (16, 165, 90)
 TANGERINE = (230, 150, 0)
 AZURE = (20, 110, 230)
 TEAL = (0, 110, 160)
+DOTGREY = (70, 70, 70)
 
 PILL = {
     "CONFIRMED": LEAF,
@@ -51,6 +57,7 @@ PILL = {
     "FORECAST": AZURE,
     "CLAIM": TANGERINE,
     "OFFICIAL": TEAL,
+    "ONGOING": TANGERINE,
 }
 
 # --- type ------------------------------------------------------------------
@@ -66,17 +73,20 @@ def _load(name, size, folder):
 class TY:
     """All faces, loaded once."""
     mast = _load("LiberationSerif-Bold.ttf", 120, LIBER)
-    kick = _load("NotoSans-Black.ttf", 15, NOTO)
+    kick = _load("NotoSans-Black.ttf", 10, NOTO)
+    kicksm = _load("NotoSans-Bold.ttf", 10, NOTO)
     deck = _load("NotoSerif-Italic.ttf", 17, NOTO)
     clock = _load("NotoSans-Bold.ttf", 12, NOTO)
-    clocksm = _load("NotoSans-Bold.ttf", 10, NOTO)
+    clocksm = _load("NotoSans-Bold.ttf", 11, NOTO)
+    tl = _load("NotoSans-Bold.ttf", 11, NOTO)
+    tlev = _load("NotoSans-Regular.ttf", 11, NOTO)
     strip = _load("NotoSans-Bold.ttf", 10, NOTO)
     stripsm = _load("NotoSans-Bold.ttf", 9, NOTO)
     striptn = _load("NotoSans-Bold.ttf", 8, NOTO)
     tag = _load("NotoSans-Bold.ttf", 8, NOTO)
     src = _load("NotoSans-Bold.ttf", 9, NOTO)
-    hhead = _load("LiberationSerif-Bold.ttf", 27, LIBER)
-    shead = _load("LiberationSerif-Bold.ttf", 16, LIBER)
+    hhead = _load("LiberationSerif-Bold.ttf", 23, LIBER)
+    shead = _load("LiberationSerif-Bold.ttf", 15, LIBER)
     hdeck = _load("LiberationSerif-Regular.ttf", 12, LIBER)
     sdeck = _load("LiberationSerif-Regular.ttf", 11, LIBER)
     pin = _load("NotoSans-Bold.ttf", 11, NOTO)
@@ -94,188 +104,176 @@ class TY:
     sect = _load("NotoSans-Black.ttf", 13, NOTO)
     chk = _load("NotoSans-Bold.ttf", 11, NOTO)
     foot = _load("NotoSans-Bold.ttf", 10, NOTO)
+    numbig = _load("NotoSans-Black.ttf", 26, NOTO)
+    numlab = _load("NotoSans-Bold.ttf", 10, NOTO)
+    numtitle = _load("NotoSans-Black.ttf", 12, NOTO)
+    topic = _load("NotoSans-Black.ttf", 11, NOTO)
+    topicsm = _load("NotoSans-Black.ttf", 9, NOTO)
+    bignum = _load("NotoSans-Black.ttf", 30, NOTO)
 
 
-# --- layout ----------------------------------------------------------------
+# --- layout (bagarte geometry) ---------------------------------------------
 MX = 12
 RX = 1012
-HY = 205
-HA = 100
-HK = 14
-HT = 88
-HH = HA + HK + HT
-SY = 415
-SR = 126
-SA = 48
-SK = 14
-SH = SA + 76
-MY = 801
-MW, MH = 336, 140
-CY = 969
-FY = 999
+HY = 200          # heroes + numbers box top
+HH = 252          # hero / numbers height
+HW = 260          # hero width
+NW = 196          # numbers-box width
+HA = 105          # hero art height
+SY = 460          # smalls row 1 top
+SR = 154          # small row pitch
+SW = 196          # small width
+SA = 60           # small art height
+SH = 146          # small card height
+MY = 768          # map + also top
+CY = 956          # date-check top
+FY = 992          # footer top
 
 ISSUES = []
 
-# --- the 36 stories --------------------------------------------------------
+# --- the 29 stories --------------------------------------------------------
 # Drawn item: (no, place, topic, source, status, headline, deck,
 # art big label, art small label, art key, pill).
-# Headlines at most two lines (27px lead, 16px small); decks at most
-# two lines (12px lead, 11px small, deck + " — source" on smalls).
+# Hero headlines at most 3 lines (23px); hero decks at most 3 lines
+# (12px). Small headlines at most 2 lines (15px); small decks at
+# most 2 lines (11px, deck + " — source").
 # CONFIRMED = two named sources agree; REPORTED = one named source;
-# CLAIM = one side's claim, unverified.
+# CLAIM = one side's claim, unverified; ONGOING = still unfolding.
 FRONT = [
-    (1, "ANTALYA", "CLIMATE", "REUTERS · BBC", "REPORTED",
-     "Climate talks collapse with no deal",
-     "Turkiye's final draft drops fossil fuels; talks end with no overarching agreement. 1.5°C overshoot admitted.",
-     "NO DEAL", "FOSSIL FUELS CUT", "copcollapse", "CONFIRMED"),
-    (2, "THE GULF", "WAR", "UKMTO · IRGC · AP", "REPORTED",
-     "Missiles rain on the Gulf as war widens",
-     "Iran hits a US base in Bahrain, Houthis fire on Saudi Arabia, two tankers struck in the Strait of Hormuz.",
-     "2 TANKERS HIT", "BASE STRUCK", "gulfwar", "CONFIRMED"),
+    (1, "ANTALYA", "CLIMATE", "UN NEWS · REUTERS", "REPORTED",
+     "COP31 ends without a climate pact",
+     "Closing plenary rejects the draft 'Antalya Pact', which named "
+     "no fossil fuels; first COP without a deal in 17 years.",
+     "NO DEAL", "FOSSIL FUELS CUT", "copcollapse", "REPORTED"),
+    (2, "THE GULF", "WAR", "AP · REUTERS · AL JAZEERA", "REPORTED",
+     "Iran vows to break the US blockade",
+     "Tehran vows to end the blockade 'by all means'; IRGC claims "
+     "radar hits in Bahrain; Houthis claim a refinery strike.",
+     "BREAK THE BLOCKADE", "25 TANKERS HIT", "gulfwar", "REPORTED"),
     (3, "WASHINGTON", "POLITICS", "AP · REUTERS", "REPORTED",
-     "Democrats sweep the House",
-     "At least 258 seats clinched — the largest Democratic majority in 34 years. A check on the Trump era.",
-     "258 SEATS", "BIGGEST SINCE 1992", "house258", "CONFIRMED"),
-    (4, "GULF OF FINLAND", "SEA", "REUTERS", "REPORTED",
-     "Russian cargo ship Sparta II still burning",
-     "Hit by drones Saturday; fire rages off Finland, 16 crew safe.",
-     "SHIP ABLAZE", "16 CREW SAFE", "shipfire", "CONFIRMED"),
-    (5, "LIBYA", "WAR", "REUTERS · AP", "REPORTED",
-     "Russian warship sunk in Libya by drone",
-     "A second Russian vessel was struck in the same attack.",
-     "WARSHIP SUNK", "DRONE STRIKE", "sinking", "REPORTED"),
-    (6, "CIKANDE", "FIRE", "DETIK", "REPORTED",
-     "Factory fire toll climbs in Cikande",
-     "Seven bodies found, 50 workers missing in Banten.",
-     "7 DEAD, 50 MISSING", "BANTEN PLANT", "factoryfire", "REPORTED"),
-    (7, "SINALOA", "CRIME", "REUTERS", "REPORTED",
-     "Mexico arrests 'Chapo Isidro' in Sinaloa raid",
-     "Alleged kingpin held in a major Sinaloa operation.",
-     "KINGPIN HELD", "SINALOA RAID", "arrest", "CONFIRMED"),
-    (8, "SEOUL", "POLITICS", "REUTERS", "REPORTED",
-     "Minister quits over AI exam cheating",
-     "Education minister resigns in an AI cheating scandal.",
-     "EXAM CHEATING", "SEOUL", "exam", "CONFIRMED"),
-    (9, "NEW DELHI", "DIPLOMACY", "IANS", "REPORTED",
+     "Democrats win 258 House seats",
+     "Hubbard flips a North Carolina seat on recount; largest "
+     "Democratic majority since 1992.",
+     "258 SEATS", "BIGGEST SINCE 1992", "house258", "REPORTED"),
+    (4, "SANTA CLARA", "TECH", "REUTERS · AP", "REPORTED",
+     "Nvidia brings back Huang; shares jump 31%",
+     "Huang returns as CEO 11 days after resigning.",
+     "+31%", "HUANG RETURNS", "shares", "REPORTED"),
+    (5, "CIKANDE", "DISASTER", "XINHUA · DETIK", "REPORTED",
+     "Factory fire toll climbs to 24 dead",
+     "24 bodies found, about 30 still missing.",
+     "24 DEAD", "BANTEN PLANT", "factoryfire", "REPORTED"),
+    (6, "NEW DELHI", "DIPLOMACY", "IANS · MEA", "REPORTED",
      "Nepal PM Shah holds talks with Modi",
-     "First foreign trip: state visit, meets Modi Monday.",
-     "STATE VISIT", "NEW DELHI", "statevisit", "CONFIRMED"),
-    (10, "WELLINGTON", "CRICKET", "REUTERS", "REPORTED",
-     "India declare on 720/9, a record in New Zealand",
-     "Rahul 136, Gill 98; hosts 119/2, trailing by 233.",
-     "720/9 DECLARED", "INDIA'S RECORD", "cricket", "CONFIRMED"),
-    (11, "WASHINGTON", "TECH", "REUTERS · AP", "REPORTED",
-     "Nvidia pressed on chips diverted to China",
-     "Bessent seeks answers on chips sent to China.",
-     "CHIP PROBE", "CHINA DIVERSION", "chip", "REPORTED"),
-    (12, "WASHINGTON", "CYBER", "AP", "REPORTED",
-     "FBI probes apparent hack of its crime database",
-     "Gun checks paused; Trump confirms the breach.",
-     "FBI PROBE", "CRIME DATABASE", "servers", "REPORTED"),
-    (13, "LIVERPOOL", "FOOTBALL", "REUTERS", "REPORTED",
-     "Liverpool thrash 10-man Man Utd",
-     "Pochettino's debut ends in a rout; United down to ten.",
-     "ROUT AT ANFIELD", "POCHETTINO'S DEBUT", "football", "CONFIRMED"),
-    (14, "LAS VEGAS", "FORMULA 1", "FIA · AP", "REPORTED",
-     "Verstappen wins chaotic Las Vegas GP",
-     "Wins from pole in the night race; Ferraris clash.",
-     "VERSTAPPEN WINS", "LAS VEGAS GP", "f1night", "CONFIRMED"),
-    (15, "KYIV REGION", "WAR", "REUTERS", "REPORTED",
-     "14 missing after drone hits Kyiv-region block",
-     "Drone hits a home; Zelenskiy: 14 unaccounted for.",
-     "14 MISSING", "DRONE STRIKE", "drones", "REPORTED"),
-    (16, "JUBA", "CONFLICT", "AP", "REPORTED",
-     "SPLA-IO attack leaves 24 civilians dead",
-     "24 civilians killed in the latest flare-up.",
-     "24 CIVILIANS DEAD", "SOUTH SUDAN", "africa", "REPORTED"),
-    (17, "CONGO", "HEALTH", "REUTERS", "REPORTED",
-     "Fighting disrupts Ebola response",
-     "WHO: battle hampers the Ebola effort.",
-     "EBOLA RESPONSE HIT", "FIGHTING NEARBY", "ebola", "REPORTED"),
-    (18, "LISBON", "PROTEST", "REUTERS", "REPORTED",
-     "Thousands march in Lisbon over living costs",
-     "Crowds fill the streets over rising prices.",
-     "COST-OF-LIVING MARCH", "LISBON", "march", "CONFIRMED"),
+     "First foreign trip; $2bn package on the table.",
+     "$2BN", "STATE VISIT", "statevisit", "REPORTED"),
+    (7, "BENGHAZI", "WAR", "REUTERS · AP", "REPORTED",
+     "Zelensky: Ukraine sank warship in Libya",
+     "Seven naval drones sank the corvette at berth.",
+     "7 DRONES", "SUNK AT BERTH", "sinking", "REPORTED"),
+    (8, "GULF OF FINLAND", "SEA", "REUTERS", "REPORTED",
+     "Sparta II still burning off Finland",
+     "Fire rages on the drone-hit ship; 16 crew safe.",
+     "16 SAFE", "SHIP ABLAZE", "shipfire", "REPORTED"),
+    (9, "WASHINGTON", "SANCTIONS", "AP", "REPORTED",
+     "US sanctions Iranian 'shadow banking'",
+     "Treasury sanctions 8 people and 22 entities.",
+     "30 TARGETS", "SHADOW BANKING", "sanctions", "REPORTED"),
+    (10, "THE GULF", "ENERGY", "REUTERS · AP", "REPORTED",
+     "Oil slides 4% as Gulf attacks continue",
+     "Brent down nearly 4% Monday as supply returns.",
+     "–4%", "BRENT SLIDES", "oil", "REPORTED"),
+    (11, "WASHINGTON", "POLITICS", "AP", "REPORTED",
+     "Gomez to quit Congress after ethics report",
+     "Democrat to resign after a House panel finds misconduct "
+     "toward a staffer.",
+     "TO QUIT", "ETHICS REPORT", "resign", "REPORTED"),
+    (12, "BEIJING", "SPACE", "XINHUA", "REPORTED",
+     "China names Shenzhou-24 crew",
+     "First foreign astronaut aboard the station.",
+     "SHENZHOU-24", "FIRST FOREIGN CREW", "space", "REPORTED"),
+    (13, "NAIROBI", "DIPLOMACY", "AP", "REPORTED",
+     "Kenya and DR Congo restore full ties",
+     "Nairobi and Kinshasa agree to restore full diplomatic ties "
+     "after a rift.",
+     "FULL TIES", "NAIROBI–KINSHASA", "handshake", "REPORTED"),
 ]
 
 # Also-list: (no, city, one line, outlet). Each line is sized to fit a
-# 320px column (298px of text) at 11px bold. All 18 are Monday stories.
+# 310px column (288px of text) at 11px bold. All 16 are Monday stories.
 ALSO = [
-    (19, "Los Angeles", "Miley Cyrus marries Maxx Morando", "AP"),
-    (20, "Atlanta", "Delta delays after automation fault", "AP"),
-    (21, "Myanmar", "ASEAN decision 'unfair'", "REUTERS"),
-    (22, "Warsaw", "Russia 'tried twice to kill rapper'", "AP"),
-    (23, "Brussels", "EU keeps €100bn for Ukraine", "REUTERS"),
-    (24, "Denver", "Tom Jackson, Broncos star, dies at 75", "ESPN"),
-    (25, "Hormuz", "Briton swims strait for the planet", "REUTERS"),
-    (26, "Olympia", "Governor: ICE 'out of control'", "AP"),
-    (27, "West Bank", "Eisenkot slams settler attacks", "REUTERS"),
-    (28, "London", "May tells Burnham: accept Brexit", "BBC"),
-    (29, "Riyadh", "Coalition intercepts Houthi missile", "REUTERS"),
-    (30, "Gulf of Oman", "tanker in military incident", "UKMTO"),
-    (31, "Islamabad", "Pakistan FM hopeful on US-Iran deal", "AP"),
-    (32, "Dnipro", "Russian strikes kill 1, injure 9", "REUTERS"),
-    (33, "Mumbai", "Tata Steel in ₹28,000cr Apollo deal", "REUTERS"),
-    (34, "Itanagar", "Shah's ₹4,000cr Arunachal push", "IANS"),
-    (35, "Goa", "IFFI hosts BRICS film roundtable", "IANS"),
-    (36, "London", "NHS 'wasting billions'", "GUARDIAN"),
+    (14, "Antalya", "COP31 chief blames EU", "REUTERS"),
+    (15, "New York", "Global stocks soar on Nvidia's return", "AP"),
+    (16, "Tehran", "Singer Parastoo Ahmadi gets 74 lashes", "AP"),
+    (17, "Washington", "Trump blasts Newsom", "AP"),
+    (18, "Kyiv", "Zelensky urges four-way peace talks", "REUTERS"),
+    (19, "Manchester", "Thousands flee concert scare", "AP"),
+    (20, "US", "Storms threaten Thanksgiving travel", "AP"),
+    (21, "Washington", "Democrats plan 12 debates", "AP"),
+    (22, "Dhaka", "Hasina plans return from exile", "REUTERS"),
+    (23, "Canberra", "Albanese defends Bowen", "AP"),
+    (24, "Juba", "SPLA-IO attack leaves 24 civilians dead", "AP"),
+    (25, "Congo", "Fighting disrupts Ebola response", "REUTERS"),
+    (26, "Lisbon", "March over living costs", "REUTERS"),
+    (27, "Myanmar", "ASEAN decision 'unfair'", "REUTERS"),
+    (28, "Warsaw", "Russia 'tried twice to kill rapper'", "AP"),
+    (29, "Brussels", "EU keeps €100bn for Ukraine", "REUTERS"),
 ]
 
-# Six numbers for the strip — one per lead story, all Monday.
+# Six numbers for the dark-navy box — one big figure per top story.
 STATS = [
-    ("258", "House seats"),
-    ("2", "tankers hit"),
-    ("50", "factory missing"),
-    ("24", "dead in South Sudan"),
-    ("€100bn", "EU Ukraine fund"),
-    ("14", "missing in Kyiv region"),
+    ("258", "House seats clinched"),
+    ("+31%", "Nvidia shares jump"),
+    ("24", "dead in Cikande fire"),
+    ("7", "drones sank Merkury"),
+    ("25", "tankers hit in a week"),
+    ("2 DAYS", "COP31 overtime"),
 ]
 
-# Region tallies, counted from the 36 items by subject:
-# EUROPE 9 (4, 13, 15, 18, 22, 23, 28, 32, 36); MIDDLE EAST 5
-# (2, 25, 27, 29, 30); AFRICA 3 (5, 16, 17); ASIA-PACIFIC 8
-# (6, 8, 9, 21, 31, 33, 34, 35); AMERICAS 9 (3, 7, 11, 12, 14, 19,
-# 20, 24, 26); OCEANIA 1 (10, Wellington venue); WORLD 1 (1, COP31).
-# 9+5+3+8+9+1+1 = 36.
+# Region tallies, counted from the 29 items by subject:
+# EUROPE 6 (8, 18, 19, 26, 28, 29); MIDDLE EAST 2 (2, 16);
+# AFRICA 4 (7, 13, 24, 25); ASIA-PACIFIC 5 (5, 6, 12, 22, 27);
+# AMERICAS 7 (3, 4, 9, 11, 17, 20, 21); OCEANIA 1 (23);
+# WORLD 4 (1, 10, 14, 15). 6+2+4+5+7+1+4 = 29.
 REGIONS = [
-    ("EUROPE", 9, (16, 62, 150), "white"),
-    ("MIDDLE EAST", 5, (200, 60, 30), "white"),
-    ("AFRICA", 3, (30, 130, 80), "white"),
-    ("ASIA-PACIFIC", 8, (90, 60, 140), "white"),
-    ("AMERICAS", 9, (16, 40, 90), "white"),
+    ("EUROPE", 6, (16, 62, 150), "white"),
+    ("MIDDLE EAST", 2, (200, 60, 30), "white"),
+    ("AFRICA", 4, (30, 130, 80), "white"),
+    ("ASIA-PACIFIC", 5, (90, 60, 140), "white"),
+    ("AMERICAS", 7, (16, 40, 90), "white"),
     ("OCEANIA", 1, (0, 120, 180), "white"),
-    ("WORLD", 1, (90, 90, 90), "white"),
+    ("WORLD", 4, (90, 90, 90), "white"),
 ]
 
 # --- the map ---------------------------------------------------------------
-# Red numbered pins for the 18 drawn items; navy dots for the 18
+# Red numbered pins for the 13 drawn items; navy dots for the 16
 # also-list lines. Values are (longitude, latitude).
 PINS = {
     1: (30.7, 36.9), 2: (56.0, 26.5), 3: (-77.0, 38.9),
-    4: (24.5, 59.9), 5: (13.2, 32.9), 6: (106.1, -6.0),
-    7: (-107.4, 24.8), 8: (127.0, 37.5), 9: (77.2, 28.6),
-    10: (174.8, -41.3), 11: (-77.0, 38.9), 12: (-77.0, 38.9),
-    13: (-3.0, 53.4), 14: (-115.1, 36.2), 15: (30.5, 50.4),
-    16: (31.6, 4.85), 17: (29.2, -1.7), 18: (-9.1, 38.7),
+    4: (-121.9, 37.4), 5: (106.1, -6.0), 6: (77.2, 28.6),
+    7: (20.1, 32.1), 8: (24.5, 59.9), 9: (-77.0, 38.9),
+    10: (56.0, 26.5), 11: (-77.0, 38.9), 12: (116.4, 39.9),
+    13: (36.8, -1.3),
 }
 DOTS = {
-    19: (-118.2, 34.0), 20: (-84.4, 33.7), 21: (96.2, 19.8),
-    22: (21.0, 52.2), 23: (4.4, 50.8), 24: (-105.0, 39.7),
-    25: (56.5, 26.6), 26: (-122.3, 47.6), 27: (35.2, 31.9),
-    28: (-0.1, 51.5), 29: (46.7, 24.7), 30: (58.5, 24.0),
-    31: (73.1, 33.7), 32: (35.0, 48.5), 33: (72.9, 19.1),
-    34: (93.6, 27.1), 35: (74.1, 15.3), 36: (-0.1, 51.5),
+    14: (30.7, 36.9), 15: (-74.0, 40.7), 16: (51.4, 35.7),
+    17: (-77.0, 38.9), 18: (30.5, 50.4), 19: (-2.2, 53.5),
+    20: (-100.0, 39.0), 21: (-77.0, 38.9), 22: (90.4, 23.8),
+    23: (149.1, -35.3), 24: (31.6, 4.85), 25: (29.2, -1.7),
+    26: (-9.1, 38.7), 27: (96.2, 19.8), 28: (21.0, 52.2),
+    29: (4.4, 50.8),
 }
-# Map is 336x140 equirectangular. Markers that would collide are nudged
-# a few pixels with a thin leader back to the true spot; Washington
-# holds pins 3, 11, 12 in one spot, London holds dots 28 and 36.
-PIN_OFF = {3: (-14, -10), 4: (12, -10), 10: (-8, 0),
-           11: (12, 8), 12: (-2, 12), 13: (-24, -6), 14: (0, -12),
-           15: (12, -2), 16: (-14, -8), 17: (-12, 8), 18: (-12, 6)}
-DOT_OFF = {20: (-6, 10), 21: (10, 8), 22: (-10, -10), 23: (-16, 2),
-           25: (-8, 10), 26: (-8, -6), 27: (8, 6), 28: (16, 0),
-           29: (14, 10), 30: (12, 8), 31: (-10, -8), 32: (16, -12),
-           33: (8, 8), 35: (10, 10), 36: (-14, -8)}
+# Markers that would collide are fanned out a few pixels with a thin
+# leader back to the true spot. Washington holds pins 3, 9, 11 and
+# dots 17, 21; the Gulf holds pins 2 and 10; Antalya holds pin 1
+# and dot 14.
+PIN_OFF = {3: (0, 0), 9: (15, -9), 11: (-15, 9),
+           10: (13, 11), 4: (0, -10), 7: (0, 0), 13: (0, 0)}
+DOT_OFF = {14: (13, -9), 17: (15, 11), 21: (-15, -9),
+           15: (0, -10), 20: (0, 0), 22: (0, -10), 23: (0, 0),
+           24: (-13, -8), 25: (-12, 8), 27: (10, 8), 28: (-10, -10),
+           29: (-14, 6), 16: (0, 0), 18: (12, -2), 19: (-12, -6),
+           26: (-12, 6)}
 
 
 # --- drawing helpers ---------------------------------------------------------
@@ -339,44 +337,19 @@ def fresh(w, h):
     return img, ImageDraw.Draw(img)
 
 
-def banner(d, w, big, small, fill):
-    """Solid bar across the top of a small picture, two white labels.
-    Sizes step down until the pair fits."""
-    box(d, 0, 0, w, 18, fill)
-    fb, fs = TY.slab, TY.slabssm
-    while (d.textlength(big, font=fb) + d.textlength(small, font=fs)
-           + 14 > w):
-        if fb.size > 9:
-            fb = ImageFont.truetype(
-                os.path.join(NOTO, "NotoSans-Black.ttf"), fb.size - 1)
-        elif fs.size > 7:
-            fs = ImageFont.truetype(
-                os.path.join(NOTO, "NotoSans-Bold.ttf"), fs.size - 1)
-        else:
-            break
-    txt(d, (6, 9), big, fb, "white", anchor="lm")
-    txt(d, (w - 6, 9), small, fs, "white", anchor="rm")
-
-
-def tag(d, w, h, big, small):
-    """Bottom-left label block on a hero picture; big over small."""
-    fb = TY.hlab
-    while d.textlength(big, font=fb) > w - 16 and fb.size > 10:
-        fb = ImageFont.truetype(
-            os.path.join(NOTO, "NotoSans-Black.ttf"), fb.size - 1)
-    bw = d.textlength(big, font=fb)
-    sw = d.textlength(small, font=TY.hlabsm)
-    bw2 = int(max(bw, sw)) + 16
-    box(d, 0, h - 34, bw2, h, (10, 10, 14))
-    txt(d, (8, h - 30), big, fb, "white")
-    txt(d, (8, h - 15), small, TY.hlabsm, "white")
-
+def _fit(d, text, font, maxw, floor):
+    """Shrink a bold face until `text` fits `maxw` (not below floor)."""
+    f = font
+    while d.textlength(text, font=f) > maxw and f.size > floor:
+        f = ImageFont.truetype(
+            os.path.join(NOTO, "NotoSans-Black.ttf"), f.size - 1)
+    return f
 
 def art(key, w, h):
     """One picture, flat vector shapes drawn from scratch.
-    Leads paint at h=105 then shrink to 100; smalls at h=80 then
-    shrink to 48. A lead's bottom-left stays clear for its tag;
-    a small's top 18px stays clear for its banner."""
+    Leads paint at h=105; smalls paint at h=80 then shrink to 60.
+    A lead's bottom-left stays clear for its tag; a small's top
+    18px stays clear for its number+place bar."""
     img, d = fresh(w, h)
     if key == "copcollapse":
         # Lead 1: the climate talks fail. Teal hall, round globe,
@@ -396,12 +369,12 @@ def art(key, w, h):
         txt(d, (154, 16), "+1.5°C", TY.amid, "white")
         txt(d, (154, 38), "LIMIT", TY.amidsm, "white")
         txt(d, (154, 50), "PASSED", TY.amidsm, "white")
-        box(d, 228, 22, 284, 78, "white")
-        d.rectangle((228, 22, 284, 78), outline=(20, 20, 20), width=2)
+        box(d, 228, 22, 256, 78, "white")
+        d.rectangle((228, 22, 256, 78), outline=(20, 20, 20), width=2)
         for ly in (32, 42, 52):
-            seg(d, [(236, ly), (276, ly)], (60, 60, 60), 2)
-        seg(d, [(256, 22), (250, 40), (258, 56), (252, 78)], SCARLET, 3)
-        txt(d, (240, 64), "NO", TY.amidsm, SCARLET, anchor="ma")
+            seg(d, [(236, ly), (248, ly)], (60, 60, 60), 2)
+        seg(d, [(228, 22), (222, 40), (230, 56), (224, 78)], SCARLET, 3)
+        txt(d, (212, 64), "NO", TY.amidsm, SCARLET, anchor="ma")
         box(d, 150, 80, 262, 102, WINE)
         txt(d, (206, 91), "NO DEAL", TY.amid, "white", anchor="mm")
     elif key == "gulfwar":
@@ -436,15 +409,15 @@ def art(key, w, h):
         burst(d, 212, 44, 9, 4, (255, 140, 40))
         burst(d, 212, 44, 5, 2, (255, 210, 31))
         for lx, ly, s, anch in ((136, 56, "BAHRAIN", "ma"),
-                                (208, 28, "THE GULF", "ma")):
+                                (170, 28, "THE GULF", "ma")):
             txt(d, (lx, ly), s, TY.amidsm, "white", anchor=anch,
                 stroke=1, stroke_fill=(0, 0, 0))
-        poly(d, [(228, 34), (276, 34), (268, 42), (236, 42)],
+        poly(d, [(200, 34), (248, 34), (240, 42), (208, 42)],
              (120, 125, 135))
-        box(d, 242, 26, 254, 34, (120, 125, 135))
-        seg(d, [(248, 26), (248, 20)], (120, 125, 135), 2)
-        seg(d, [(224, 44), (280, 44)], "white")
-        txt(d, (252, 50), "5TH FLEET", TY.amidsm, "white", anchor="ma",
+        box(d, 214, 26, 226, 34, (120, 125, 135))
+        seg(d, [(220, 26), (220, 20)], (120, 125, 135), 2)
+        seg(d, [(196, 44), (252, 44)], "white")
+        txt(d, (224, 50), "5TH FLEET", TY.amidsm, "white", anchor="ma",
             stroke=1, stroke_fill=(0, 0, 0))
     elif key == "house258":
         # Lead 3: the US House flips. Navy hall, white Capitol dome
@@ -518,45 +491,6 @@ def art(key, w, h):
         for wx in (30, 56, 130, 156):
             box(d, wx, 50, wx + 10, 58, (40, 40, 50))
         box(d, 82, 50, 92, 58, (255, 180, 60))
-    elif key == "arrest":
-        # 'Chapo Isidro' arrested: dusk desert road, gold badge,
-        # steel cuffs on a chain, patrol car with flashing lights.
-        box(d, 0, 0, w, h, (220, 160, 90))
-        box(d, 0, 60, w, h, (120, 80, 50))
-        seg(d, [(0, 60), (w, 60)], (60, 40, 20), 2)
-        poly(d, [(98, 22), (118, 22), (114, 46), (98, 52), (82, 46)],
-             GILT, outline=(120, 90, 0))
-        burst(d, 100, 34, 8, 3, (255, 240, 180))
-        for cx in (52, 148):
-            ring(d, cx - 12, 44, cx + 12, 68, (220, 220, 230), 4)
-            disc(d, cx, 56, 4, (220, 220, 230))
-        seg(d, [(64, 56), (136, 56)], (220, 220, 230), 3)
-        ring(d, 96, 50, 104, 58, (220, 220, 230), 2)
-        box(d, 150, 62, 186, 72, (20, 20, 26))
-        box(d, 158, 56, 178, 62, (20, 20, 26))
-        disc(d, 167, 54, 3, SCARLET)
-        disc(d, 175, 54, 3, (60, 120, 255))
-    elif key == "exam":
-        # Minister quits over AI exam cheating: desk, exam paper
-        # with red crosses, pencil, robot head for the AI angle.
-        box(d, 0, 0, w, h, (120, 90, 60))
-        box(d, 0, 62, w, h, (90, 65, 40))
-        poly(d, [(70, 24), (130, 28), (126, 62), (66, 58)], "white",
-             outline=(60, 60, 60))
-        for ly in (34, 42, 50):
-            seg(d, [(76, ly), (120, ly + 2)], ASH)
-        for xx, xy in ((112, 34), (100, 46)):
-            seg(d, [(xx - 4, xy - 4), (xx + 4, xy + 4)], SCARLET, 2)
-            seg(d, [(xx + 4, xy - 4), (xx - 4, xy + 4)], SCARLET, 2)
-        poly(d, [(140, 66), (172, 62), (176, 66), (144, 70)],
-             (255, 200, 40))
-        poly(d, [(172, 62), (180, 64), (176, 66)], (240, 200, 180))
-        box(d, 30, 26, 52, 44, (150, 160, 180))
-        d.rectangle((30, 26, 52, 44), outline=(60, 60, 70))
-        disc(d, 38, 34, 2, (40, 200, 90))
-        disc(d, 46, 34, 2, (40, 200, 90))
-        seg(d, [(41, 26), (41, 20)], (60, 60, 70), 2)
-        disc(d, 41, 20, 3, SCARLET)
     elif key == "statevisit":
         # Nepal PM lands on a state visit: plane on the runway,
         # two flags on poles.
@@ -576,296 +510,251 @@ def art(key, w, h):
         poly(d, [(84, 52), (94, 62), (98, 52)], (40, 90, 160))
         for wx in (84, 118):
             disc(d, wx, 58, 4, (20, 20, 20))
-    elif key == "cricket":
-        # India declare on 720/9 in Wellington: stands and lights,
-        # green outfield, tan pitch, stumps, batsman mid-swing,
-        # scoreboard reading NZ 368 / IND 720/9.
-        box(d, 0, 0, w, h, (60, 160, 90))
-        box(d, 0, 20, w, 34, (45, 55, 70))
-        crowd = ((220, 180, 140), (180, 120, 80), (240, 200, 160),
-                 (200, 60, 60), (60, 120, 200), (240, 240, 240),
-                 (30, 30, 30), (250, 200, 40))
-        for row, cy in ((0, 25), (1, 30)):
-            for i, hx in enumerate(range(6, w - 4, 7)):
-                disc(d, hx, cy, 2, crowd[(i + row * 3) % len(crowd)])
-        box(d, 0, 34, w, 36, (220, 220, 220))
-        for px0 in (6, 190):
-            seg(d, [(px0, 20), (px0, 34)], (120, 125, 135), 2)
-            box(d, px0 - 5, 20, px0 + 5, 26, (90, 95, 105))
-            for lx in (px0 - 3, px0 + 1):
-                disc(d, lx, 22, 1, "white")
-        poly(d, [(4, 26), (14, 26), (30, 44), (0, 44)], (235, 235, 195))
-        poly(d, [(182, 26), (192, 26), (196, 44), (166, 44)],
-             (235, 235, 195))
-        for sy in range(36, h, 16):
-            box(d, 0, sy, w, sy + 8, (52, 148, 82))
-        box(d, 88, 38, 110, h, (214, 186, 140))
-        seg(d, [(88, 42), (110, 42)], "white", 2)
-        seg(d, [(88, 74), (110, 74)], "white", 2)
-        for sx in (94, 98, 102):
-            box(d, sx, 38, sx + 2, 48, (240, 220, 140))
-        seg(d, [(94, 38), (104, 38)], (240, 220, 140))
-        disc(d, 125, 51, 5, (200, 140, 90))
-        box(d, 120, 56, 131, 70, (20, 20, 25))
-        seg(d, [(122, 70), (116, 79)], "white", 4)
-        seg(d, [(129, 70), (135, 79)], "white", 4)
-        seg(d, [(128, 58), (142, 48)], (200, 140, 90), 3)
-        seg(d, [(142, 48), (156, 34)], (200, 170, 110), 5)
-        disc(d, 159, 33, 4, (200, 40, 40), outline="white", width=1)
-        seg(d, [(166, 27), (172, 22)], "white", 2)
-        for fx, fy in ((28, 58), (58, 70), (170, 52)):
-            disc(d, fx, fy, 3, "white")
-        box(d, 136, 58, 194, 78, "white")
-        d.rectangle((136, 58, 194, 78), outline=BLACK, width=1)
-        txt(d, (165, 63), "NZ 368", TY.slabssm, BLACK, anchor="mm")
-        txt(d, (165, 72), "IND 720/9", TY.slabssm, BLACK, anchor="mm")
-    elif key == "chip":
-        # Nvidia pressed on chips diverted to China: dark board, big
-        # green AI chip with gold pins, red arrow to a red flag.
+    elif key == "shares":
+        # Nvidia shares jump on Huang's return: dark board, a steep
+        # rising chart line, green arrow, the gain as the picture.
         box(d, 0, 0, w, h, (16, 24, 44))
-        for ty in range(24, h, 14):
-            seg(d, [(0, ty), (w, ty)], (30, 40, 60))
-        box(d, 30, 26, 78, 62, (16, 140, 80))
-        d.rectangle((30, 26, 78, 62), outline=(60, 200, 120), width=2)
-        for px in (36, 48, 60, 72):
-            seg(d, [(px, 22), (px, 26)], GILT, 2)
-            seg(d, [(px, 62), (px, 66)], GILT, 2)
-        for py in (32, 44, 56):
-            seg(d, [(26, py), (30, py)], GILT, 2)
-            seg(d, [(78, py), (82, py)], GILT, 2)
-        txt(d, (54, 44), "AI", TY.amid, "white", anchor="mm")
-        seg(d, [(84, 44), (120, 30), (150, 36)], SCARLET, 3)
-        poly(d, [(150, 36), (140, 30), (140, 42)], SCARLET)
-        box(d, 156, 26, 186, 46, (200, 30, 40))
-        burst(d, 171, 36, 6, 2, (255, 210, 31))
-        txt(d, (54, 74), "WHERE DID THEY GO?", TY.slabssm, "white",
-            anchor="ma")
-    elif key == "servers":
-        # FBI probes a hack of its crime database: dark server room,
-        # three racks with blinking lights, red bolt, glowing monitor.
-        box(d, 0, 0, w, h, (16, 24, 44))
-        for rx in (18, 76, 134):
-            box(d, rx, 24, rx + 48, 72, (40, 48, 64))
-            d.rectangle((rx, 24, rx + 48, 72), outline=(90, 100, 120))
-            for ry in range(28, 68, 10):
-                box(d, rx + 6, ry, rx + 42, ry + 6, (24, 32, 48))
-                disc(d, rx + 38, ry + 3, 2, (60, 200, 90))
-        poly(d, [(92, 22), (104, 22), (96, 40), (108, 40),
-                 (84, 66), (90, 44), (80, 44)], (220, 30, 40))
-        box(d, 140, 30, 176, 48, (180, 220, 240))
-        seg(d, [(146, 36), (170, 36)], (20, 60, 120), 2)
-        seg(d, [(146, 42), (162, 42)], (20, 60, 120), 2)
-    elif key == "football":
-        # Liverpool thrash 10-man Man Utd: green pitch, red striker
-        # volleying into the net, white goal frame, 4–0 board.
-        box(d, 0, 0, w, h, (30, 140, 60))
-        for sy in range(20, h, 16):
-            box(d, 0, sy, w, sy + 8, (26, 128, 54))
-        seg(d, [(0, 40), (w, 40)], "white", 2)
-        d.rectangle((150, 26, 192, 62), outline="white", width=3)
-        for gx in range(154, 190, 8):
-            seg(d, [(gx, 28), (gx, 60)], (220, 220, 220))
-        for gy in range(30, 60, 8):
-            seg(d, [(152, gy), (190, gy)], (220, 220, 220))
-        disc(d, 89, 35, 5, (200, 140, 90))
-        box(d, 84, 40, 95, 56, (200, 30, 40))
-        seg(d, [(86, 56), (80, 68)], "white", 4)
-        seg(d, [(93, 56), (100, 68)], "white", 4)
-        seg(d, [(93, 44), (108, 36)], (200, 140, 90), 3)
-        seg(d, [(108, 36), (128, 30)], (200, 140, 90), 4)
-        disc(d, 133, 29, 5, "white", outline=BLACK, width=1)
-        poly(d, [(130, 26), (134, 30), (130, 34), (126, 30)], BLACK)
-        box(d, 8, 60, 66, 76, "white")
-        d.rectangle((8, 60, 66, 76), outline=BLACK, width=1)
-        txt(d, (37, 68), "LIV 4–0 MUN", TY.slabssm, BLACK, anchor="mm")
-    elif key == "f1night":
-        # Verstappen wins under lights in Las Vegas: night skyline,
-        # neon strip, low red F1 car, checkered flag.
-        box(d, 0, 0, w, h, (10, 12, 28))
-        for bx, bh, col in ((10, 28, (200, 220, 240)), (34, 40, (255, 90, 90)),
-                            (60, 24, (255, 220, 80)), (84, 34, (100, 200, 255)),
-                            (110, 44, (220, 160, 255)), (142, 30, (200, 220, 240)),
-                            (166, 38, (120, 240, 160))):
-            box(d, bx, 18, bx + 18, 18 + bh, col)
-        for wx in range(14, w, 10):
-            disc(d, wx, 26, 1, "white")
-        box(d, 0, 56, w, h, (30, 30, 36))
-        seg(d, [(0, 58), (w, 58)], (240, 180, 40), 2)
-        poly(d, [(30, 64), (120, 62), (128, 70), (36, 72)], (200, 30, 40))
-        box(d, 50, 56, 84, 64, (200, 30, 40))
-        seg(d, [(96, 58), (96, 52)], (220, 220, 230), 2)
-        for wx in (40, 112):
-            disc(d, wx, 72, 5, (20, 20, 20))
-            disc(d, wx, 72, 2, (180, 180, 190))
-        disc(d, 160, 34, 14, (255, 210, 31))
-        for cx in range(152, 168, 4):
-            for cy in range(26, 42, 4):
-                box(d, cx, cy, cx + 2, cy + 2, "black")
-        seg(d, [(160, 48), (160, 68)], (120, 120, 130), 2)
-    elif key == "drones":
-        # Kyiv region hit overnight: dark sky, red drone with a
-        # rotor, a falling missile, a fire glow behind a roofline.
-        box(d, 0, 0, w, h, (14, 16, 28))
-        for sx, sy in ((30, 14), (80, 8), (150, 12), (185, 18)):
+        for gy in range(14, h, 12):
+            seg(d, [(0, gy), (w, gy)], (30, 40, 60))
+        for gx in range(14, w, 18):
+            seg(d, [(gx, 0), (gx, h)], (30, 40, 60))
+        pts = [(10, 66), (40, 60), (70, 64), (100, 46), (130, 50),
+               (160, 28), (186, 16)]
+        for i in range(len(pts) - 1):
+            seg(d, [pts[i], pts[i + 1]], (60, 200, 90), 3)
+        for px, py in pts:
+            disc(d, px, py, 3, (60, 200, 90))
+        poly(d, [(186, 16), (176, 14), (176, 22)], (60, 200, 90))
+    elif key == "sanctions":
+        # US sanctions Iranian shadow banking: a ledger page, a red
+        # stamp, a chain of blocked accounts.
+        box(d, 0, 0, w, h, (220, 215, 200))
+        box(d, 0, 62, w, h, (90, 85, 70))
+        poly(d, [(60, 18), (136, 22), (132, 66), (56, 62)], "white",
+             outline=(60, 60, 60))
+        for ly in (30, 38, 46, 54):
+            seg(d, [(66, ly), (126, ly + 1)], ASH)
+        for xx in (120, 108):
+            seg(d, [(xx - 4, 30 - 4), (xx + 4, 30 + 4)], SCARLET, 2)
+            seg(d, [(xx + 4, 30 - 4), (xx - 4, 30 + 4)], SCARLET, 2)
+        d.ellipse((140, 20, 184, 52), outline=SCARLET, width=3)
+        txt(d, (162, 36), "BLOCKED", TY.slabssm, SCARLET, anchor="mm")
+        for cx in (40, 100, 160):
+            disc(d, cx, 56, 5, (40, 40, 50))
+            box(d, cx - 3, 61, cx + 3, 74, (40, 40, 50))
+        seg(d, [(45, 56), (95, 56)], (40, 40, 50), 2)
+        seg(d, [(105, 56), (155, 56)], (40, 40, 50), 2)
+    elif key == "oil":
+        # Oil slides as Gulf attacks continue: a dark barrel, a red
+        # falling arrow, a price line dropping.
+        box(d, 0, 0, w, h, (20, 30, 50))
+        for gy in range(14, h, 12):
+            seg(d, [(0, gy), (w, gy)], (35, 45, 65))
+        d.ellipse((24, 26, 76, 74), fill=(30, 35, 45),
+                  outline=(120, 125, 135), width=2)
+        seg(d, [(24, 38), (76, 38)], (120, 125, 135), 2)
+        seg(d, [(24, 56), (76, 56)], (120, 125, 135), 2)
+        txt(d, (50, 50), "OIL", TY.amid, "white", anchor="mm")
+        seg(d, [(96, 22), (130, 40), (160, 34), (188, 58)], SCARLET, 3)
+        poly(d, [(188, 58), (178, 56), (184, 66)], SCARLET)
+    elif key == "resign":
+        # Gomez to quit after an ethics report: an empty chair, a
+        # closing door, a gavel on the desk.
+        box(d, 0, 0, w, h, (200, 200, 210))
+        box(d, 0, 60, w, h, (120, 110, 100))
+        box(d, 30, 22, 90, 60, (90, 60, 40))
+        d.rectangle((30, 22, 90, 60), outline=(60, 40, 20), width=2)
+        disc(d, 78, 41, 4, GILT)
+        box(d, 110, 26, 170, 60, (150, 140, 130))
+        d.rectangle((110, 26, 170, 60), outline=(90, 80, 70), width=2)
+        box(d, 118, 34, 140, 52, (200, 200, 210))
+        seg(d, [(118, 43), (140, 43)], (60, 60, 60), 2)
+        seg(d, [(150, 30), (150, 56)], (60, 60, 60), 2)
+        poly(d, [(60, 62), (76, 62), (72, 76), (64, 76)], (60, 40, 20))
+        box(d, 56, 76, 80, 79, (60, 40, 20))
+    elif key == "space":
+        # China names the Shenzhou-24 crew: night sky, a rocket
+        # climbing, a station ring, stars.
+        box(d, 0, 0, w, h, (8, 12, 30))
+        for sx, sy in ((20, 14), (60, 10), (110, 16), (160, 12),
+                       (185, 20), (40, 30), (140, 28)):
             disc(d, sx, sy, 1, "white")
-        for rx, rw in ((0, 42), (42, 28), (70, 52), (122, 34),
-                       (156, 40)):
-            box(d, rx, 46, rx + rw, 62, (60, 60, 70))
-        disc(d, 98, 54, 12, (255, 140, 40))
-        disc(d, 98, 58, 6, (255, 210, 31))
-        d.ellipse((54, 20, 64, 26), fill=(90, 95, 105))
-        seg(d, [(46, 18), (72, 18)], (200, 200, 210), 2)
-        seg(d, [(59, 26), (59, 30)], (200, 200, 210))
-        seg(d, [(132, 34), (150, 42)], (255, 120, 60), 3)
-        burst(d, 152, 44, 6, 3, (255, 140, 40))
-    elif key == "africa":
-        # SPLA-IO attack kills 24 in South Sudan: red sun, acacia
-        # silhouettes, three white huts.
-        box(d, 0, 0, w, h, (240, 180, 110))
-        disc(d, 150, 28, 20, (230, 60, 40))
-        box(d, 0, 54, w, h, (190, 140, 70))
-        for ax, ay in ((30, 42), (170, 38)):
-            seg(d, [(ax, 54), (ax, ay)], (90, 60, 40), 3)
-            seg(d, [(ax - 14, ay + 2), (ax + 14, ay + 2)], (90, 60, 40), 3)
-            seg(d, [(ax - 10, ay + 6), (ax + 10, ay + 6)], (90, 60, 40), 2)
-        for hx, hy, hs in ((60, 60, 16), (95, 64, 20), (130, 62, 14)):
-            box(d, hx, hy, hx + hs, hy + 16, (250, 245, 230))
-            poly(d, [(hx - 4, hy), (hx + hs // 2, hy - 10),
-                     (hx + hs + 4, hy)], (200, 60, 40))
-    elif key == "ebola":
-        # Ebola response disrupted in Congo: grey clinic, red
-        # cross, red no-go circle over a syringe.
-        box(d, 0, 0, w, h, (200, 210, 220))
-        box(d, 0, 60, w, h, (130, 140, 150))
-        box(d, 54, 34, 142, 64, "white")
-        d.rectangle((54, 34, 142, 64), outline=(60, 60, 70))
-        box(d, 66, 34, 130, 44, (200, 30, 40))
-        for wx in (64, 92, 120):
-            box(d, wx, 50, wx + 12, 60, (40, 90, 160))
-        box(d, 84, 18, 112, 34, "white")
-        box(d, 92, 8, 104, 34, (200, 30, 40))
-        seg(d, [(88, 20), (108, 20)], SCARLET, 2)
-        seg(d, [(98, 10), (98, 30)], SCARLET, 2)
-        seg(d, [(138, 20), (158, 44)], (20, 20, 20), 3)
-        seg(d, [(138, 20), (158, 44)], SCARLET, 2)
-        ring(d, 140, 16, 172, 48, SCARLET, 3)
-        seg(d, [(144, 20), (168, 44)], SCARLET, 3)
-    elif key == "march":
-        # Lisbon cost-of-living march: two banners and placards,
-        # marchers below.
-        box(d, 0, 0, w, h, (160, 210, 230))
+        poly(d, [(92, 20), (104, 20), (108, 48), (88, 48)], "white")
+        poly(d, [(98, 8), (104, 20), (92, 20)], SCARLET)
+        poly(d, [(88, 48), (80, 60), (88, 54)], (200, 200, 210))
+        poly(d, [(108, 48), (116, 60), (108, 54)], (200, 200, 210))
+        burst(d, 98, 62, 8, 3, (255, 180, 60))
+        ring(d, 140, 30, 180, 62, GILT, 2)
+        disc(d, 160, 46, 6, GILT)
+        txt(d, (160, 46), "24", TY.slabssm, BLACK, anchor="mm")
+    elif key == "handshake":
+        # Kenya and DR Congo restore ties: two flags on poles, two
+        # hands meeting in the middle.
+        box(d, 0, 0, w, h, (200, 220, 235))
         box(d, 0, 58, w, h, (90, 90, 98))
-        for px, py, pw, ph, col, lab in ((20, 22, 74, 18, SCARLET, "FIM"),
-                                         (100, 20, 80, 20, (20, 60, 140),
-                                          "A VIDA")):
-            box(d, px, py, px + pw, py + ph, col)
-            txt(d, (px + pw // 2, py + ph // 2), lab, TY.slabssm,
-                "white", anchor="mm")
-            seg(d, [(px + pw // 2, py + ph), (px + pw // 2, 58)],
-                (60, 60, 60), 2)
-        for mx in (40, 78, 118, 156):
-            disc(d, mx, 58, 5, (30, 30, 40))
-            box(d, mx - 3, 63, mx + 3, 78, (30, 30, 40))
-        seg(d, [(30, 48), (30, 62)], (60, 60, 60), 2)
-        box(d, 22, 42, 38, 50, "white")
-        seg(d, [(24, 46), (36, 46)], (20, 20, 20), 2)
-        seg(d, [(164, 48), (164, 62)], (60, 60, 60), 2)
-        box(d, 156, 42, 172, 50, "white")
-        seg(d, [(158, 46), (170, 46)], (20, 20, 20), 2)
+        for fx, cols in ((20, ((0, 0, 0), (200, 30, 40), (0, 130, 60))),
+                         (150, ((0, 60, 160), (255, 210, 31), (200, 30, 40)))):
+            seg(d, [(fx, 22), (fx, 58)], (60, 60, 60), 2)
+            box(d, fx, 22, fx + 24, 30, cols[0])
+            box(d, fx, 30, fx + 24, 38, cols[1])
+            box(d, fx, 38, fx + 24, 46, cols[2])
+        poly(d, [(70, 40), (98, 34), (104, 40), (98, 46), (76, 48)],
+             (200, 170, 140), outline=(120, 90, 60))
+        poly(d, [(126, 40), (98, 34), (92, 40), (98, 46), (120, 48)],
+             (220, 190, 160), outline=(120, 90, 60))
+        seg(d, [(70, 40), (126, 40)], (120, 90, 60), 2)
     else:
         raise ValueError("unknown art: %s" % key)
     return img.resize((w, h), Image.LANCZOS)
 
 
 # --- assembly ----------------------------------------------------------------
-def heropic(key, w, big, small):
-    """A lead picture: painted 105 tall with its bottom-left label,
-    shrunk to 100."""
-    img = art(key, w, 105)
-    d2 = ImageDraw.Draw(img)
-    tag(d2, w, 105, big, small)
-    return img.resize((w, HA), Image.LANCZOS)
+def heropic(key, w):
+    """A lead picture: painted 105 tall, returned at 105."""
+    return art(key, w, HA)
 
 
-def minipic(key, big, small):
-    """A small picture: painted 196x80 with its solid red banner,
-    shrunk to 196x48."""
-    img = art(key, 196, 80)
-    d2 = ImageDraw.Draw(img)
-    banner(d2, 196, big, small, SCARLET)
-    return img.resize((196, SA), Image.LANCZOS)
+def minipic(key):
+    """A small picture: painted 196x80, shrunk to 196x60."""
+    return art(key, SW, 80).resize((SW, SA), Image.LANCZOS)
+
+
+def topbar(d, x, y, w, num, place, vtag):
+    """Bagarte's number+place bar across the top of a picture:
+    dark strip, circled number left, place in caps, status pill
+    right. Text shrinks until it fits."""
+    box(d, x, y, x + w, y + 18, (10, 10, 14))
+    disc(d, x + 11, y + 9, 7, "white")
+    txt(d, (x + 11, y + 9), str(num), TY.tag, BLACK, anchor="mm")
+    label = "%s" % place
+    fb = TY.slab
+    while d.textlength(label, font=fb) > w - 52 and fb.size > 8:
+        fb = ImageFont.truetype(
+            os.path.join(NOTO, "NotoSans-Black.ttf"), fb.size - 1)
+    txt(d, (x + 22, y + 9), label, fb, "white", anchor="lm")
+    pw = int(d.textlength(vtag, font=TY.tag)) + 10
+    d.rounded_rectangle((x + w - 4 - pw, y + 3, x + w - 4, y + 15),
+                        radius=2, fill=PILL[vtag])
+    txt(d, (x + w + 1 - pw, y + 9), vtag, TY.tag, "white", anchor="lm")
 
 
 def hero_card(img, d, story, x, y, w):
-    """A lead card, 202 tall: 100px art with a bottom-left label, a
-    14px navy strip (pill left, number + place + topic, source right
-    in gold), a two-line 27px serif headline and a two-line 12px
-    serif deck, the text block centred in the 88px area under the
-    strip, all inside a 1px ink box."""
+    """A lead card, 252 tall (bagarte): 105px art with a number+place
+    bar and a status pill, a topic line, a 2–3 line 23px serif
+    headline, a 2–3 line 12px serif deck, and a 9px source line,
+    all inside a 1px ink box."""
     num, place, topic, src, _st, head, deck, big, small, key, vtag = story
     box(d, x, y, x + w, y + HH, PANEL)
-    img.paste(heropic(key, w, big, small), (x, y))
-    sy = y + HA
-    box(d, x, sy, x + w, sy + HK, MIDNIGHT)
-    pw = int(d.textlength(vtag, font=TY.tag)) + 10
-    d.rounded_rectangle((x + 8, sy + 2, x + 8 + pw, sy + 12), radius=2,
-                        fill=PILL[vtag])
-    txt(d, (x + 13, sy + 7), vtag, TY.tag, "white", anchor="lm")
-    txt(d, (x + 14 + pw, sy + 7), "%d. %s · %s" % (num, place, topic),
-        TY.strip, "white", anchor="lm")
-    txt(d, (x + w - 8, sy + 7), src, TY.src, GILT, anchor="rm")
-    hl = wrap(d, head, TY.hhead, w - 16, 2)
-    dl = wrap(d, deck, TY.hdeck, w - 16, 2)
-    bh = len(hl) * 30 + 2 + len(dl) * 13
-    ty = sy + HK + (HT - bh) // 2
+    pic = heropic(key, w)
+    img.paste(pic, (x, y))
+    d2 = ImageDraw.Draw(img)
+    topbar(d2, x, y, w, num, place, vtag)
+    ty = y + HA + 6
+    txt(d, (x + 8, ty), topic, TY.topic, BLACK)
+    hl = wrap(d, head, TY.hhead, w - 16, 3)
+    dl = wrap(d, deck, TY.hdeck, w - 16, 3)
+    hy = ty + 16
     for j, ln in enumerate(hl):
-        txt(d, (x + 8, ty + j * 30), ln, TY.hhead, BLACK)
+        txt(d, (x + 8, hy + j * 26), ln, TY.hhead, BLACK)
+    dy = hy + len(hl) * 26 + 2
     for j, ln in enumerate(dl):
-        txt(d, (x + 8, ty + len(hl) * 30 + 2 + j * 13), ln, TY.hdeck,
-            (60, 60, 60))
+        txt(d, (x + 8, dy + j * 14), ln, TY.hdeck, (60, 60, 60))
+    txt(d, (x + 8, y + HH - 14), src, TY.src, ASH)
     d.rectangle((x, y, x + w, y + HH), outline=BLACK, width=1)
 
 
 def small_card(img, d, story, x, y):
-    """A small card, 124 tall: 48px art with its red banner, a 14px
-    navy strip (number + place + topic left, pill right — the strip
-    text shrinks 9px to 8px when pill + text would overflow the
-    196px card), a two-line 16px serif headline and a two-line 11px
-    serif deck with its source, inside a 1px ink box."""
+    """A small card, 146 tall (bagarte + pandya): 60px art with a
+    number+place bar, a status pill, and a big-number badge (the
+    story's big label, white on black, centred in the art), a topic
+    line, a 2-line 15px serif headline and a 2-line 11px serif deck
+    with its source, inside a 1px ink box."""
     num, place, topic, src, _st, head, deck, big, small, key, vtag = story
-    w = 196
+    w = SW
     box(d, x, y, x + w, y + SH, PANEL)
-    img.paste(minipic(key, big, small), (x, y))
-    sy = y + SA
-    box(d, x, sy, x + w, sy + SK, MIDNIGHT)
-    kick = "%d. %s · %s" % (num, place, topic)
-    pw = int(d.textlength(vtag, font=TY.tag)) + 10
-    fk = TY.stripsm
-    if d.textlength(kick, font=fk) + pw + 12 > w:
-        fk = TY.striptn
-    txt(d, (x + 4, sy + 7), kick, fk, "white", anchor="lm")
-    d.rounded_rectangle((x + w - 4 - pw, sy + 2, x + w - 4, sy + 12),
-                        radius=2, fill=PILL[vtag])
-    txt(d, (x + w + 1 - pw, sy + 7), vtag, TY.tag, "white", anchor="lm")
+    pic = minipic(key)
+    img.paste(pic, (x, y))
+    d2 = ImageDraw.Draw(img)
+    topbar(d2, x, y, w, num, place, vtag)
+    # big-number badge, centred in the art below the top bar
+    fb = TY.bignum
+    while d.textlength(big, font=fb) > w - 24 and fb.size > 14:
+        fb = ImageFont.truetype(
+            os.path.join(NOTO, "NotoSans-Black.ttf"), fb.size - 1)
+    bw = int(d.textlength(big, font=fb)) + 16
+    bx0 = x + (w - bw) // 2
+    by0 = y + 24
+    d2.rounded_rectangle((bx0, by0, bx0 + bw, by0 + 30), radius=3,
+                         fill=(10, 10, 14))
+    txt(d2, (bx0 + bw // 2, by0 + 15), big, fb, "white", anchor="mm")
+    ty = y + SA + 5
+    txt(d, (x + 8, ty), topic, TY.topicsm, BLACK)
     hl = wrap(d, head, TY.shead, w - 16, 2)
     for j, ln in enumerate(hl):
-        txt(d, (x + 8, sy + SK + 4 + j * 16), ln, TY.shead, BLACK)
+        txt(d, (x + 8, ty + 14 + j * 17), ln, TY.shead, BLACK)
     dl = wrap(d, deck + " — " + src, TY.sdeck, w - 16, 2)
     for j, ln in enumerate(dl):
-        txt(d, (x + 8, sy + SK + 5 + len(hl) * 16 + j * 12), ln,
+        txt(d, (x + 8, ty + 15 + len(hl) * 17 + j * 12), ln,
             TY.sdeck, (60, 60, 60))
     d.rectangle((x, y, x + w, y + SH), outline=BLACK, width=1)
 
 
+def numbers_box(d, x, y):
+    """Bagarte's dark-navy THE DAY IN NUMBERS box: title plus six
+    big figures, each a 26px number over a 10px label."""
+    box(d, x, y, x + NW, y + HH, MIDNIGHT)
+    txt(d, (x + 10, y + 8), "THE DAY IN NUMBERS", TY.numtitle, "white")
+    seg(d, [(x + 10, y + 26), (x + NW - 10, y + 26)], (80, 100, 140), 1)
+    ey = y + 34
+    for value, label in STATS:
+        fv = TY.numbig
+        while d.textlength(value, font=fv) > NW - 20 and fv.size > 18:
+            fv = ImageFont.truetype(
+                os.path.join(NOTO, "NotoSans-Black.ttf"), fv.size - 1)
+        txt(d, (x + 10, ey), value, fv, "white")
+        txt(d, (x + 10, ey + 28), label, TY.numlab, (200, 210, 230))
+        ey += 38
+    d.rectangle((x, y, x + NW, y + HH), outline=BLACK, width=1)
+
+
+def _inside(lon, lat, polys):
+    """Ray-casting point-in-polygon for one lon/lat against a list
+    of rings (each a list of (lon, lat))."""
+    for ring in polys:
+        inside = False
+        n = len(ring)
+        j = n - 1
+        for i in range(n):
+            xi, yi = ring[i]
+            xj, yj = ring[j]
+            if ((yi > lat) != (yj > lat)):
+                xint = (xj - xi) * (lat - yi) / (yj - yi) + xi
+                if lon < xint:
+                    inside = not inside
+            j = i
+        if inside:
+            return True
+    return False
+
+
 def draw_map(d, x0, y0, w, h):
-    """A light world map: pale blue sea, tan land from
-    world.geo.json, navy dots for the also-list stories, numbered
-    red pins for the drawn stories. Equirectangular projection;
-    pins and dots that would sit on top of each other are fanned
-    out a few pixels with a thin leader line back to their true
-    spot (see PIN_OFF / DOT_OFF)."""
+    """Bagarte's dotted world map: pale blue sea, land as a grid of
+    dark dots (from world.geo.json), navy dots for the also-list
+    stories, numbered red pins for the drawn stories. Pins and dots
+    that would collide are fanned out with a thin leader back to
+    their true spot."""
     with open(os.path.join(HERE, "world.geo.json")) as fh:
         geo = json.load(fh)
+    polys = []
+    for feat in geo["features"]:
+        geom = feat["geometry"]
+        rings = []
+        if geom["type"] == "Polygon":
+            rings = [geom["coordinates"]]
+        elif geom["type"] == "MultiPolygon":
+            rings = geom["coordinates"]
+        for poly_ring in rings:
+            polys.append(poly_ring[0])
 
     def px(lon):
         return x0 + (lon + 180.0) / 360.0 * w
@@ -874,17 +763,14 @@ def draw_map(d, x0, y0, w, h):
         return y0 + (90.0 - lat) / 180.0 * h
 
     box(d, x0, y0, x0 + w, y0 + h, SEA)
-    for feat in geo["features"]:
-        geom = feat["geometry"]
-        polys = []
-        if geom["type"] == "Polygon":
-            polys = [geom["coordinates"]]
-        elif geom["type"] == "MultiPolygon":
-            polys = geom["coordinates"]
-        for poly_ring in polys:
-            ring = poly_ring[0]
-            pts = [(px(lon), py(lat)) for lon, lat in ring]
-            poly(d, pts, SHORE, outline=(200, 180, 120))
+    # dotted land: 3px grid, 1.5px dots where inside a land polygon
+    step = 3
+    for gy in range(2, h, step):
+        lat = 90.0 - (gy / h) * 180.0
+        for gx in range(2, w, step):
+            lon = (gx / w) * 360.0 - 180.0
+            if _inside(lon, lat, polys):
+                disc(d, x0 + gx, y0 + gy, 1.5, (50, 50, 50))
     for num, (lon, lat) in DOTS.items():
         tx, ty = px(lon), py(lat)
         ox, oy = DOT_OFF.get(num, (0, 0))
@@ -901,14 +787,17 @@ def draw_map(d, x0, y0, w, h):
         fp = TY.pin if num < 10 else TY.pinsm
         txt(d, (cx, cy), str(num), fp, "white", anchor="mm")
 
-
 def build():
     img, d = fresh(W, H)
     box(d, 0, 0, W - 1, H - 1, BG)
-    # ---- masthead 0-149: the date at 120px on its own layer,
+    # ---- top strip 0-14: the paper's name left, the count right. ----
+    txt(d, (MX, 7), "THE WORLD IN ONE DAY", TY.kick, BLACK)
+    txt(d, (RX, 7),
+        "29 STORIES · 7 REGIONS · ALL FROM THIS ONE DAY", TY.kick,
+        BLACK, anchor="ra")
+    # ---- masthead 16-128: the date at 120px on its own layer,
     # squeezed horizontally to 996px so its ink top sits at 19
-    # (ink 19-127, 109px tall); the deck line at y=123; the
-    # kicker at the top right; the bottom rule at 147-149. ----
+    # (ink 19-127, 109px tall). ----
     title = "Monday 23 November 2026"
     lw = int(d.textlength(title, font=TY.mast)) + 8
     layer = Image.new("RGBA", (lw, 150), (0, 0, 0, 0))
@@ -917,119 +806,102 @@ def build():
     ink_top = layer.getbbox()[1]
     layer = layer.resize((996, 150), Image.LANCZOS)
     img.paste(layer, (MX, 19 - ink_top), layer)
-    txt(d, (MX, 123),
-        "COP31 talks collapse with no deal · Missiles rain on the "
-        "Gulf · Democrats win the House", TY.deck, SCARLET)
-    txt(d, (RX, 1),
-        "36 STORIES · 7 REGIONS · EVERY ONE DATED MONDAY 23 NOVEMBER "
-        "2026", TY.kick, BLACK, anchor="ra")
-    box(d, 0, 147, W, 149, BLACK)
-    # ---- numbers strip 150-162: six figures, red value + ink
-    # caption, separated by middots. ----
-    nx = MX + int(d.textlength("THE DAY IN NUMBERS:  ", font=TY.clock))
-    txt(d, (MX, 150), "THE DAY IN NUMBERS:", TY.clock, SCARLET)
-    for i, (value, caption) in enumerate(STATS):
-        txt(d, (nx, 150), value, TY.clock, SCARLET)
-        nx += int(d.textlength(value, font=TY.clock)) + 4
-        txt(d, (nx, 150), caption, TY.clock, BLACK)
-        nx += int(d.textlength(caption, font=TY.clock))
-        if i < len(STATS) - 1:
-            txt(d, (nx, 150), "  ·  ", TY.clock, ASH)
-            nx += int(d.textlength("  ·  ", font=TY.clock))
-    # ---- region bar 164-175: seven equal segments, count after
+    # ---- red kicker 130-148: the three leads, italic serif. ----
+    txt(d, (MX, 130),
+        "COP31 ends without a climate pact · Iran vows to break the "
+        "blockade · Democrats win 258 seats", TY.deck, SCARLET)
+    # ---- region bar 150-164: seven equal segments, count after
     # the name, white 9px bold centred in each segment. ----
-    bx, by, bw, bh = MX, 164, 1000, 11
+    bx, by, bw, bh = MX, 150, 1000, 14
     segw = bw / len(REGIONS)
     for i, (label, count, fill, ink) in enumerate(REGIONS):
         sx = bx + i * segw
         box(d, sx, by, sx + segw - 1, by + bh, fill)
-        txt(d, (sx + segw / 2, by + 6), "%s %d" % (label, count),
+        txt(d, (sx + segw / 2, by + 7), "%s %d" % (label, count),
             TY.src, ink, anchor="mm")
-    # ---- UTC timeline 176-202: a black label box at the left,
-    # then seven evenly spaced columns (98-1012, 130.6px each):
-    # red bold time above a ruled line with a red dot, bold
-    # event below. ----
-    tl_y = 176
-    box(d, MX, tl_y, 90, tl_y + 20, BLACK)
-    txt(d, (51, tl_y + 10), "THE DAY IN UTC", TY.src, "white",
-        anchor="mm")
-    timeline = [("00:30", "Tankers hit in Hormuz"),
-                ("04:00", "Verstappen wins Vegas"),
-                ("06:00", "COP31 talks collapse"),
-                ("09:00", "Nepal PM meets Modi"),
-                ("12:00", "Chapo Isidro arrested"),
-                ("14:00", "Democrats pass 258"),
-                ("17:00", "Factory toll at 7")]
-    tl_x0, tl_x1 = 98, RX
-    col = (tl_x1 - tl_x0) / len(timeline)
-    seg(d, [(tl_x0, tl_y + 13), (tl_x1, tl_y + 13)], BLACK, 1)
+    # ---- UTC timeline 168-192: a black UTC box at the left, then
+    # six time+event pairs in one line (red bold time, black event),
+    # separated by middots. ----
+    tl_y = 168
+    box(d, MX, tl_y, 58, tl_y + 20, BLACK)
+    txt(d, (35, tl_y + 10), "UTC", TY.src, "white", anchor="mm")
+    timeline = [("05:30", "Modi meets Shah"),
+                ("06:00", "COP31 ends, no deal"),
+                ("09:00", "Iran vows blockade break"),
+                ("11:00", "Cikande toll at 24"),
+                ("14:30", "Huang reinstated"),
+                ("19:00", "Democrats clinch 258")]
+    tx = 66
     for i, (tt, ev) in enumerate(timeline):
-        cx = tl_x0 + col * (i + 0.5)
-        txt(d, (cx, tl_y), tt, TY.clock, SCARLET, anchor="ma")
-        disc(d, cx, tl_y + 13, 3, SCARLET)
-        txt(d, (cx, tl_y + 17), ev, TY.clocksm, BLACK, anchor="ma")
-    # ---- heroes 205-407: lead 396 wide, two rails 294 wide,
-    # 8px gaps. ----
+        txt(d, (tx, tl_y + 10), tt, TY.tl, SCARLET, anchor="lm")
+        tx += int(d.textlength(tt, font=TY.tl)) + 4
+        txt(d, (tx, tl_y + 10), ev, TY.tlev, BLACK, anchor="lm")
+        tx += int(d.textlength(ev, font=TY.tlev))
+        if i < len(timeline) - 1:
+            txt(d, (tx, tl_y + 10), "  ·  ", TY.tl, ASH, anchor="lm")
+            tx += int(d.textlength("  ·  ", font=TY.tl))
+    # ---- heroes 200-452: three 260px leads, then the numbers box. ----
     hx = MX
     for i, story in enumerate(FRONT[:3]):
-        w = [396, 294, 294][i]
-        hero_card(img, d, story, hx, HY, w)
-        hx += w + 8
-    # ---- smalls 415-793: three rows of five, 196 wide, 204
-    # pitch, 126 row pitch, 9px gaps. ----
-    for r in range(3):
+        hero_card(img, d, story, hx, HY, HW)
+        hx += HW + 8
+    numbers_box(d, hx, HY)
+    # ---- smalls 460-760: two rows of five, 196 wide, 204 pitch,
+    # 154 row pitch. ----
+    for r in range(2):
         for c in range(5):
             k = 3 + r * 5 + c
             small_card(img, d, FRONT[k], MX + c * 204,
                        SY + r * SR)
-    # ---- map + also 801-963: the light map at the left, the
-    # 18-line also-list in two 320px columns at the right. ----
-    txt(d, (MX, MY), "WHERE IT HAPPENED", TY.sect, BLACK)
-    seg(d, [(MX, MY + 16), (348, MY + 16)], BLACK, 1)
-    box(d, MX, MY + 22, 348, MY + 162, SEA)
-    d.rectangle((MX, MY + 22, 348, MY + 162), outline=EDGE, width=1)
-    draw_map(d, MX, MY + 22, MW, MH)
-    also_x = 364
-    txt(d, (also_x, MY), "ALSO ON MONDAY 23 NOVEMBER", TY.sect, BLACK)
-    txt(d, (RX, MY), "18 MORE STORIES", TY.sect, BLACK, anchor="ra")
-    seg(d, [(also_x, MY + 16), (RX, MY + 16)], BLACK, 1)
-    col_w, rows = 320, 9
+    # ---- also-list (left) + map (right) 768-948. ----
+    txt(d, (MX, MY), "ALSO ON MONDAY 23 NOVEMBER", TY.sect, BLACK)
+    txt(d, (652, MY), "16 MORE STORIES", TY.sect, BLACK, anchor="ra")
+    seg(d, [(MX, MY + 16), (652, MY + 16)], BLACK, 1)
+    col_w, rows = 310, 8
     for i, (num, city, line, src) in enumerate(ALSO):
         col_i = 0 if i < rows else 1
         row = i if i < rows else i - rows
-        x = also_x + col_i * (col_w + 8)
+        x = MX + col_i * (col_w + 18)
         y = MY + 22 + row * 13
         txt(d, (x, y), "%d." % num, TY.alsonum, SCARLET)
         full = "%s: %s (%s)" % (city, line, src)
         lines = wrap(d, full, TY.also, col_w - 22, 1)
         txt(d, (x + 20, y), lines[0] if lines else "", TY.also, BLACK)
-    # ---- date check 969-996: the red box naming the big stories
-    # deliberately left out because they are not Monday — Saturday's
-    # Sparta II drone hit (only the fire is Monday), Sunday's Hong
-    # Kong vote and the 186-drone barrage; plus what is not yet
-    # confirmed, and the Liverpool match, played Sunday. ----
-    d.rectangle((MX, CY, RX, CY + 27), outline=SCARLET, width=2)
-    chk = ("DATE CHECK — Left out, first reported Sunday 22 Nov: "
-           "Sparta II hit (only the fire is Monday) · Hong Kong "
-           "Election Committee vote · Russia's 186-drone barrage on "
-           "Kyiv. Played Sunday, reported Monday: Liverpool–Man "
-           "Utd. Not yet confirmed: Iran's radar-hit claim · COP31 "
-           "final text.")
+    map_x, map_w, map_h = 680, 332, 148
+    txt(d, (map_x, MY), "WHERE IT HAPPENED", TY.sect, BLACK)
+    txt(d, (RX, MY), "pins = story numbers", TY.src, ASH, anchor="ra")
+    seg(d, [(map_x, MY + 16), (RX, MY + 16)], BLACK, 1)
+    box(d, map_x, MY + 22, map_x + map_w, MY + 22 + map_h, SEA)
+    d.rectangle((map_x, MY + 22, map_x + map_w, MY + 22 + map_h),
+                outline=EDGE, width=1)
+    draw_map(d, map_x, MY + 22, map_w, map_h)
+    # ---- date check 956-986: the red box naming the big stories
+    # deliberately left out because they are not Monday, and what
+    # is not yet confirmed. ----
+    d.rectangle((MX, CY, RX, CY + 30), outline=SCARLET, width=2)
+    chk = ("DATE CHECK — Every story here happened or was first "
+           "reported on Monday 23 November 2026 (UTC). Left out "
+           "(earlier day): 'Chapo Isidro' 20–21 Nov · Liverpool–Man "
+           "Utd, Verstappen GP, Dymer hit, India 720/9, Seoul "
+           "minister — all Sun 22 Nov · FBI breach Fri 20 Nov. Not "
+           "yet confirmed: Iran's radar/drone claims · Cikande "
+           "missing count.")
     chk_lines = wrap(d, chk, TY.chk, 976, 2)
     for j, ln in enumerate(chk_lines):
-        txt(d, (20, CY - 1 + j * 11), ln, TY.chk, BLACK)
-    # ---- footer 999-1019: a centred sources line, then the HOW
-    # WE CHECKED legend as one line. ----
+        txt(d, (20, CY + 4 + j * 11), ln, TY.chk, BLACK)
+    # ---- footer 992-1018: a centred sources line, then the HOW
+    # SURE legend as one line. ----
     txt(d, (512, FY),
         "Sources: Reuters · AP · AFP · SCMP · Al Jazeera · BBC · "
         "Guardian · Detik · Xinhua · IANS · Yonhap · ABC · ESPN · "
-        "UKMTO · WHO. · Corrections: none", TY.foot, ASH, anchor="ma")
-    hx = 20 + int(d.textlength("HOW WE CHECKED — ", font=TY.foot))
-    txt(d, (20, FY + 10), "HOW WE CHECKED — ", TY.foot, SCARLET)
-    txt(d, (hx, FY + 10),
-        "CONFIRMED 2+ named sources agree · OFFICIAL on the record "
-        "· REPORTED one named source · CLAIM one side's claim, "
-        "unverified", TY.foot, BLACK)
+        "UKMTO · WHO · Corrections: none", TY.foot, ASH, anchor="ma")
+    hx = 20 + int(d.textlength("HOW SURE: ", font=TY.foot))
+    txt(d, (20, FY + 11), "HOW SURE: ", TY.foot, SCARLET)
+    txt(d, (hx, FY + 11),
+        "REPORTED = carried by the day's wires or officials · CLAIM "
+        "= one side's account, labelled as such · ONGOING = still "
+        "unfolding · Scenes are drawn illustrations, not photographs.",
+        TY.foot, BLACK)
     return img
 
 
