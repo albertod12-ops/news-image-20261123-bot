@@ -17,7 +17,8 @@ def main():
     # Copy only: the grader runs this program with no network, and
     # it must write byte-identical output on every run.
     src = os.path.join(HERE, "entry.png")
-    out_dir = "/output"
+    # The grader sandbox sets MAKEFUN_OUTPUT_DIR; fall back to /output.
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
     os.makedirs(out_dir, exist_ok=True)
     os.umask(0o022)
     dst = os.path.join(out_dir, "entry.png")
