@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
-"""Front page for Monday 23 November 2026 — v3.4.
+"""Front page for Monday 23 November 2026 — v3.5.
 
-Exact-detail revision of v3.3 on the sum-22 top-1 (bagarte,
-final #1) layout, all seven points measured from the reference:
-(1) the masthead date is BOLD (Didone Black + 2px stroke);
-(2) every place+country label is a COMPACT white box fitted to
-the text length only, placed at the top-left INSIDE its picture
-(art rearranged so the top-left is clear); (3) the COP31 top is
-clean — globe and thermometer lowered clear of the label, the
-wall clock moved to the top-right and visible; (4) headlines,
-place labels and topic labels are bold (headlines carry a 1px
-stroke, like bagarte's heavy type); (5) the UTC row is LIGHT
-again — a small RED "UTC" box only, red bold times, dark events,
-ending at x=1000 before the right grey border line; (6) "WHERE
-IT HAPPENED" sits INSIDE the map panel (bagarte); (7) every
-also-list item (14-29) has a small grey sub-line (detail +
-source) below its main line, like bagarte. The pictures are
-flat vector shapes drawn here, the words are written here;
-nothing is photographed, pasted, or copied in.
+Exact-detail revision of v3.4 on the sum-22 top-1 (bagarte,
+final #1) layout, two points, following the user's order
+literally (it reverses the v3.4 bold pass):
+(1) BOLD only on the "Monday 23 November 2026" masthead
+(Didone Black + 2px stroke) and on the RED kicker line —
+every other text is NOT bold: the v3.4 1px stroke is removed
+from the hero/small headlines, the place+country labels and
+the "REGION · TOPIC" labels are back to NotoSans-Bold (not
+Black), and the headline wrap widths are restored;
+(2) the red kicker is moved UP close under the masthead
+(ink top y=114, the masthead ink ends at 110) and enlarged
+to fill the full width left-to-right (LiberationSerif-Bold
+23, stretched to exactly 1000px, MX..RX, one line).
+The pictures are flat vector shapes drawn here, the words
+are written here; nothing is photographed, pasted, or
+copied in.
 
 Renders entry.png (1024x1024, byte-stable) from world.geo.json.
 Usage: python3 draw.py
@@ -86,8 +85,10 @@ class TY:
     # bagarte's masthead (86px), when squeezed to 996 wide.
     mast = _load("NotoSerifDisplay-Black.ttf", 88, NOTO)
     kick = _load("NotoSans-Black.ttf", 10, NOTO)
-    kicksm = _load("NotoSans-Bold.ttf", 10, NOTO)
-    deck = _load("NotoSerif-Italic.ttf", 17, NOTO)
+    # v3.5: the red kicker is the ONLY bold serif besides the
+    # masthead — LiberationSerif-Bold 23, stretched to fill the
+    # full 1000px width (natural width 975px at 23px).
+    kickbold = _load("LiberationSerif-Bold.ttf", 23, LIBER)
     clock = _load("NotoSans-Bold.ttf", 12, NOTO)
     clocksm = _load("NotoSans-Bold.ttf", 11, NOTO)
     tl = _load("NotoSans-Bold.ttf", 11, NOTO)
@@ -109,8 +110,8 @@ class TY:
     amidsm = _load("NotoSans-Bold.ttf", 11, NOTO)
     hlab = _load("NotoSans-Black.ttf", 16, NOTO)
     hlabsm = _load("NotoSans-Bold.ttf", 9, NOTO)
-    slab = _load("NotoSans-Black.ttf", 12, NOTO)
-    slab10 = _load("NotoSans-Black.ttf", 10, NOTO)
+    slab = _load("NotoSans-Bold.ttf", 12, NOTO)
+    slab10 = _load("NotoSans-Bold.ttf", 10, NOTO)
     slabssm = _load("NotoSans-Bold.ttf", 8, NOTO)
     also = _load("NotoSans-Bold.ttf", 11, NOTO)
     also10 = _load("NotoSans-Bold.ttf", 10, NOTO)
@@ -123,8 +124,8 @@ class TY:
     numbig = _load("NotoSans-Black.ttf", 26, NOTO)
     numlab = _load("NotoSans-Bold.ttf", 10, NOTO)
     numtitle = _load("NotoSans-Black.ttf", 12, NOTO)
-    topic = _load("NotoSans-Black.ttf", 11, NOTO)
-    topicsm = _load("NotoSans-Black.ttf", 9, NOTO)
+    topic = _load("NotoSans-Bold.ttf", 11, NOTO)
+    topicsm = _load("NotoSans-Bold.ttf", 9, NOTO)
     bignum = _load("NotoSans-Black.ttf", 30, NOTO)
 
 
@@ -888,7 +889,7 @@ def topbar(d, x, y, w, num, place, country, region, vtag, font,
     f = font
     while d.textlength(label, font=f) > w - 40 and f.size > 8:
         f = ImageFont.truetype(
-            os.path.join(NOTO, "NotoSans-Black.ttf"), f.size - 1)
+            os.path.join(NOTO, "NotoSans-Bold.ttf"), f.size - 1)
     tw = int(d.textlength(label, font=f))
     bw = pad + discr * 2 + 4 + tw + pad
     bx, by = x + pad, y + pad
@@ -934,12 +935,11 @@ def hero_card(img, d, story, x, y, w):
     txt(d, (x + 8, ty),
         "%s · %s" % (region_label(region), topic), TY.topic,
         REGION_COLOUR[region])
-    hl = wrap(d, head, TY.hhead, w - 20, 3)
+    hl = wrap(d, head, TY.hhead, w - 16, 3)
     dl = wrap(d, deck, TY.hdeck, w - 16, 3)
     hy = ty + 16
     for j, ln in enumerate(hl):
-        txt(d, (x + 8, hy + j * 29), ln, TY.hhead, BLACK, stroke=1,
-            stroke_fill=BLACK)
+        txt(d, (x + 8, hy + j * 29), ln, TY.hhead, BLACK)
     dy = hy + len(hl) * 29 + 2
     for j, ln in enumerate(dl):
         txt(d, (x + 8, dy + j * 14), ln, TY.hdeck, (60, 60, 60))
@@ -967,10 +967,9 @@ def small_card(img, d, story, x, y):
     txt(d, (x + 8, ty),
         "%s · %s" % (region_label(region), topic), TY.topicsm,
         REGION_COLOUR[region])
-    hl = wrap(d, head, TY.shead, w - 20, 2)
+    hl = wrap(d, head, TY.shead, w - 16, 2)
     for j, ln in enumerate(hl):
-        txt(d, (x + 8, ty + 14 + j * 20), ln, TY.shead, BLACK,
-            stroke=1, stroke_fill=BLACK)
+        txt(d, (x + 8, ty + 14 + j * 20), ln, TY.shead, BLACK)
     dl = wrap(d, deck + " — " + src, TY.sdeck, w - 16, 2)
     for j, ln in enumerate(dl):
         txt(d, (x + 8, ty + 15 + len(hl) * 20 + j * 12), ln,
@@ -1104,10 +1103,21 @@ def build():
     ink_top = layer.getbbox()[1]
     layer = layer.resize((996, 150), Image.LANCZOS)
     img.paste(layer, (MX, 24 - ink_top), layer)
-    # ---- red kicker 130-148: the three leads, italic serif. ----
-    txt(d, (MX, 130),
-        "COP31 ends without a climate pact · Iran vows to break the "
-        "blockade · Democrats win 258 seats", TY.deck, SCARLET)
+    # ---- red kicker: BOLD (the only bold serif besides the
+    # masthead), moved UP close under the masthead and enlarged
+    # to fill the full width left-to-right (MX..RX, 1000px).
+    # Rendered on a layer at LiberationSerif-Bold 23 (natural
+    # width 975px), cropped to its ink, then stretched to exactly
+    # 1000px wide and pasted so the ink top sits at y=114 (the
+    # masthead ink ends at 110; the region bar is at 150).
+    kicker = ("COP31 ends without a climate pact · Iran vows to "
+              "break the blockade · Democrats win 258 seats")
+    klayer = Image.new("RGBA", (1100, 60), (0, 0, 0, 0))
+    kd = ImageDraw.Draw(klayer)
+    kd.text((0, 0), kicker, font=TY.kickbold, fill=SCARLET + (255,))
+    kb = klayer.getbbox()
+    kcrop = klayer.crop(kb).resize((1000, kb[3] - kb[1]), Image.LANCZOS)
+    img.paste(kcrop, (MX, 114), kcrop)
     # ---- region bar 150-168: seven SEPARATE boxes, 18px tall with
     # 12px text (bagarte's size), each sized to its text with
     # wider padding, ~7px white gaps, the whole row centred
