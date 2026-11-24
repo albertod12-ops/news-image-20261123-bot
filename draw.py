@@ -88,7 +88,8 @@ class TY:
     # v3.5: the red kicker is the ONLY bold serif besides the
     # masthead — LiberationSerif-Bold 23, stretched to fill the
     # full 1000px width (natural width 975px at 23px).
-    kickbold = _load("LiberationSerif-Bold.ttf", 23, LIBER)
+    # v3.8: bagarte's kicker is ITALIC serif — BoldItalic 23.
+    kickbold = _load("LiberationSerif-BoldItalic.ttf", 23, LIBER)
     clock = _load("NotoSans-Bold.ttf", 12, NOTO)
     clocksm = _load("NotoSans-Bold.ttf", 11, NOTO)
     tl = _load("NotoSans-Bold.ttf", 11, NOTO)
