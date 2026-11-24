@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""Front page for Monday 23 November 2026 — v3.3.
+"""Front page for Monday 23 November 2026 — v3.4.
 
-Exact-detail revision of v3.2 on the sum-22 top-1 (bagarte,
-final #1) layout, all eight points measured from the reference:
-(1) the masthead date is a Didone (Noto Serif Display Black),
-sized so its ink is 86px tall like bagarte's; (2) hero headlines
-are 25px and small headlines 17px, matching bagarte's larger
-type; (3) the region bar boxes are 18px tall with 12px text,
-like bagarte's; (4) the UTC timeline is a full-width dark-navy
-bar to the right edge (red UTC box, gold times, white events);
-(5) the numbers box figures wear the user's exact colours
-(258 light blue, $2BN green, 24 red, 7 dark blue, 2 green,
-2 DAYS white); (6) every status pill sits at the bottom-right
-corner of its picture, the art rearranged to keep it clear;
-(7) every also-list number is coloured by its region; (8) the
-map is denser and clearer (3px dot grid, paler sea) like
-bagarte's. The pictures are flat vector shapes drawn here, the
-words are written here; nothing is photographed, pasted, or
-copied in.
+Exact-detail revision of v3.3 on the sum-22 top-1 (bagarte,
+final #1) layout, all seven points measured from the reference:
+(1) the masthead date is BOLD (Didone Black + 2px stroke);
+(2) every place+country label is a COMPACT white box fitted to
+the text length only, placed at the top-left INSIDE its picture
+(art rearranged so the top-left is clear); (3) the COP31 top is
+clean — globe and thermometer lowered clear of the label, the
+wall clock moved to the top-right and visible; (4) headlines,
+place labels and topic labels are bold (headlines carry a 1px
+stroke, like bagarte's heavy type); (5) the UTC row is LIGHT
+again — a small RED "UTC" box only, red bold times, dark events,
+ending at x=1000 before the right grey border line; (6) "WHERE
+IT HAPPENED" sits INSIDE the map panel (bagarte); (7) every
+also-list item (14-29) has a small grey sub-line (detail +
+source) below its main line, like bagarte. The pictures are
+flat vector shapes drawn here, the words are written here;
+nothing is photographed, pasted, or copied in.
 
 Renders entry.png (1024x1024, byte-stable) from world.geo.json.
 Usage: python3 draw.py
@@ -110,8 +110,12 @@ class TY:
     hlab = _load("NotoSans-Black.ttf", 16, NOTO)
     hlabsm = _load("NotoSans-Bold.ttf", 9, NOTO)
     slab = _load("NotoSans-Black.ttf", 12, NOTO)
+    slab10 = _load("NotoSans-Black.ttf", 10, NOTO)
     slabssm = _load("NotoSans-Bold.ttf", 8, NOTO)
     also = _load("NotoSans-Bold.ttf", 11, NOTO)
+    also10 = _load("NotoSans-Bold.ttf", 10, NOTO)
+    alsosub = _load("NotoSans-Regular.ttf", 8, NOTO)
+    alsosub7 = _load("NotoSans-Regular.ttf", 7, NOTO)
     alsonum = _load("NotoSans-Bold.ttf", 11, NOTO)
     sect = _load("NotoSans-Black.ttf", 13, NOTO)
     chk = _load("NotoSans-Bold.ttf", 12, NOTO)
@@ -219,7 +223,7 @@ ALSO = [
     (16, "Tehran", "Parastoo Ahmadi gets 74 lashes", "AP"),
     (17, "Washington", "Trump blasts Newsom", "AP"),
     (18, "Kyiv", "Zelensky urges peace talks", "REUTERS"),
-    (19, "Manchester", "Thousands flee concert scare", "AP"),
+    (19, "Manchester", "Thousands flee scare", "AP"),
     (20, "US", "Storms threaten Thanksgiving travel", "AP"),
     (21, "Washington", "Democrats plan 12 debates", "AP"),
     (22, "Dhaka", "Hasina plans return from exile", "REUTERS"),
@@ -303,6 +307,26 @@ FLAG_OF = {14: "TR", 15: "SA", 16: "IR", 17: "US", 18: "UA",
            19: "GB", 20: "US", 21: "US", 22: "BD", 23: "AU",
            24: "SS", 25: "CD", 26: "PT", 27: "MM", 28: "PL",
            29: "BE"}
+
+# Small sub-line under each also-list item (14-29), like
+# bagarte: a short detail plus the source, in small grey text.
+# Each follows from its main line (no new claim).
+ALSO_SUB = {14: "Chief blames EU for the failed pact",
+            15: "Saudi air defence intercepts missile",
+            16: "Singer lashed in Tehran",
+            17: "Trump attacks California governor",
+            18: "President pushes for negotiations",
+            19: "Crowd flees in panic",
+            20: "Holiday travel hit by storms",
+            21: "Party plans primary debates",
+            22: "Ex-PM eyes return to Bangladesh",
+            23: "PM backs energy minister",
+            24: "Rebels blamed for civilian deaths",
+            25: "Outbreak response hit by fighting",
+            26: "Protesters demand relief",
+            27: "Junta criticises ASEAN move",
+            28: "Rapper targeted, Poland says",
+            29: "Brussels holds Ukraine funding"}
 
 # Region for each also-list item (14-29), from the region tallies:
 # WORLD 14, 15; MIDDLE EAST 16; AMERICAS 17, 20, 21; EUROPE 18, 19,
@@ -522,21 +546,25 @@ def art(key, w, h):
     if key == "copcollapse":
         # Lead 1: the climate talks fail. Teal hall, round globe,
         # thermometer past the mark, a torn page, a NO DEAL band.
+        # The compact place label now sits top-left inside the
+        # picture, so the top is kept clear for it: the globe and
+        # the thermometer sit lower (tops at y26+), and the wall
+        # clock moved to the top-right, clear of the torn page.
         box(d, 0, 0, w, h, (11, 110, 110))
-        disc(d, 51, 53, 31, (30, 120, 200), outline=(20, 20, 20), width=2)
-        for a, b, c, e in ((30, 34, 52, 48), (52, 50, 74, 66),
-                           (30, 54, 44, 66)):
+        disc(d, 51, 58, 31, (30, 120, 200), outline=(20, 20, 20), width=2)
+        for a, b, c, e in ((30, 39, 52, 53), (52, 55, 74, 71),
+                           (30, 59, 44, 71)):
             d.ellipse((a, b, c, e), fill=(60, 180, 90))
-        seg(d, [(22, 53), (80, 53)], "white", 1)
-        box(d, 132, 14, 142, 62, "white")
-        d.rectangle((132, 14, 142, 62), outline=(20, 20, 20))
-        box(d, 134, 16, 140, 62, (220, 30, 40))
-        disc(d, 137, 66, 11, (220, 30, 40), outline=(20, 20, 20), width=2)
-        for ty in (20, 28, 36, 44, 52):
+        seg(d, [(22, 58), (80, 58)], "white", 1)
+        box(d, 132, 26, 142, 74, "white")
+        d.rectangle((132, 26, 142, 74), outline=(20, 20, 20))
+        box(d, 134, 28, 140, 74, (220, 30, 40))
+        disc(d, 137, 78, 11, (220, 30, 40), outline=(20, 20, 20), width=2)
+        for ty in (32, 40, 48, 56, 64):
             seg(d, [(142, ty), (147, ty)], (20, 20, 20))
-        txt(d, (154, 16), "+1.5°C", TY.amid, "white")
-        txt(d, (154, 38), "LIMIT", TY.amidsm, "white")
-        txt(d, (154, 50), "PASSED", TY.amidsm, "white")
+        txt(d, (154, 28), "+1.5°C", TY.amid, "white")
+        txt(d, (154, 50), "LIMIT", TY.amidsm, "white")
+        txt(d, (154, 62), "PASSED", TY.amidsm, "white")
         box(d, 228, 22, 256, 78, "white")
         d.rectangle((228, 22, 256, 78), outline=(20, 20, 20), width=2)
         for ly in (32, 42, 52):
@@ -546,17 +574,20 @@ def art(key, w, h):
         # stays clear for the REPORTED pill (bagarte).
         box(d, 8, 84, 108, 102, WINE)
         txt(d, (58, 93), "NO DEAL", TY.amid, "white", anchor="mm")
-        # wall clock and delegates mid-right: a scene with people,
-        # not just icons. The delegates sit clear of the globe,
-        # the thermometer and the torn page.
-        disc(d, 18, 14, 9, "white", outline=(20, 20, 20), width=1)
-        seg(d, [(18, 14), (18, 7)], (20, 20, 20), 1)
-        seg(d, [(18, 14), (23, 16)], (20, 20, 20), 1)
-        for fx, shirt in ((150, (200, 60, 40)), (185, (40, 90, 160)),
-                          (215, (240, 200, 60))):
-            disc(d, fx + 6, 72, 5, (220, 180, 140))
-            poly(d, [(fx, 88), (fx + 12, 88), (fx + 10, 79),
-                     (fx + 2, 79)], shirt)
+        # wall clock top-right and delegates lower-right: a scene
+        # with people, not just icons. The delegates sit LOW (heads
+        # y80, bodies y87-96) so they clear "PASSED" (ends y73),
+        # the thermometer bulb (x126-148) and the NO DEAL band
+        # (x<108); the rightmost body ends at x196, clear of the
+        # REPORTED pill (x198+).
+        disc(d, 205, 14, 9, "white", outline=(20, 20, 20), width=1)
+        seg(d, [(205, 14), (205, 7)], (20, 20, 20), 1)
+        seg(d, [(205, 14), (210, 16)], (20, 20, 20), 1)
+        for fx, shirt in ((152, (200, 60, 40)), (168, (40, 90, 160)),
+                          (184, (240, 200, 60))):
+            disc(d, fx + 6, 80, 5, (220, 180, 140))
+            poly(d, [(fx, 96), (fx + 12, 96), (fx + 10, 87),
+                     (fx + 2, 87)], shirt)
     elif key == "gulfwar":
         # Lead 2: the Gulf at war, as a map. Iran coast on top,
         # Arabian coast below, Bahrain with two base bursts, dashed
@@ -564,7 +595,9 @@ def art(key, w, h):
         box(d, 0, 0, w, h, (14, 48, 96))
         poly(d, [(0, 0), (w, 0), (w, 14), (240, 16), (180, 12),
                  (120, 16), (60, 14), (0, 18)], (214, 196, 150))
-        txt(d, (14, 4), "IRAN", TY.amidsm, BLACK)
+        # "IRAN" moved right so the compact place label (top-left
+        # inside the picture) does not cover it.
+        txt(d, (170, 4), "IRAN", TY.amidsm, BLACK)
         poly(d, [(0, h), (0, 82), (70, 74), (140, 82), (210, 76),
                  (260, 82), (w, 72), (w, h)], (214, 196, 150))
         # SAUDI ARABIA sits bottom-left now, so the bottom-right
@@ -615,37 +648,39 @@ def art(key, w, h):
     elif key == "house258":
         # Lead 3: the US House flips. Navy hall, white Capitol dome
         # with columns and a gold cupola, seat bar bottom-right:
-        # 258 blue against 177 red.
+        # 258 blue against 177 red. The dome assembly sits 20px
+        # right of centre so the compact place label (top-left
+        # inside the picture) does not cover the cupola; the flag
+        # moved down so its top clears the label box.
         box(d, 0, 0, w, h, MIDNIGHT)
         for sx, sy in ((22, 30), (70, 30), (210, 30), (280, 30),
                        (340, 30), (378, 30)):
             disc(d, sx, sy, 1, "white")
-        d.ellipse((99, 20, 195, 68), fill="white")
-        box(d, 97, 48, 197, 66, "white")
-        for cx in (112, 132, 152, 172, 192):
+        d.ellipse((119, 20, 215, 68), fill="white")
+        box(d, 117, 48, 217, 66, "white")
+        for cx in (132, 152, 172, 192, 212):
             seg(d, [(cx, 48), (cx, 66)], MIDNIGHT, 2)
-        box(d, 87, 66, 207, 70, "white")
-        box(d, 123, 12, 171, 26, "white")
-        disc(d, 147, 11, 12, GILT)
+        box(d, 107, 66, 227, 70, "white")
+        box(d, 143, 12, 191, 26, "white")
+        disc(d, 167, 11, 12, GILT)
         # Seat bar moved left and narrowed so the bottom-right stays
         # clear for the REPORTED pill (bagarte): blue 258, red 177.
-        box(d, 65, 82, 137, 96, (40, 90, 200))
-        box(d, 137, 82, 185, 96, (200, 40, 50))
-        txt(d, (101, 89), "258", TY.amidsm, "white", anchor="mm")
-        txt(d, (161, 89), "177", TY.amidsm, "white", anchor="mm")
-        txt(d, (10, 8), "THE HOUSE", TY.amidsm, GILT)
+        box(d, 85, 82, 157, 96, (40, 90, 200))
+        box(d, 157, 82, 205, 96, (200, 40, 50))
+        txt(d, (121, 89), "258", TY.amidsm, "white", anchor="mm")
+        txt(d, (181, 89), "177", TY.amidsm, "white", anchor="mm")
         txt(d, (250, 8), "SINCE 1992", TY.amidsm, GILT, anchor="ra")
         # a flag on the left, steps under the dome, and windows on
         # the dome: a fuller scene.
-        seg(d, [(30, 18), (30, 72)], (200, 200, 210), 2)
-        box(d, 30, 18, 58, 30, (200, 40, 50))
-        for sy in (22, 26):
+        seg(d, [(30, 24), (30, 72)], (200, 200, 210), 2)
+        box(d, 30, 24, 58, 36, (200, 40, 50))
+        for sy in (28, 32):
             seg(d, [(30, sy), (58, sy)], "white", 1)
-        box(d, 30, 18, 42, 24, (40, 60, 140))
-        disc(d, 36, 21, 1, "white")
+        box(d, 30, 24, 42, 30, (40, 60, 140))
+        disc(d, 36, 27, 1, "white")
         for sy in (73, 77, 81):
-            seg(d, [(85, sy), (210, sy)], (180, 180, 190), 2)
-        for wx, wy in ((120, 40), (147, 35), (174, 40)):
+            seg(d, [(105, sy), (230, sy)], (180, 180, 190), 2)
+        for wx, wy in ((140, 40), (167, 35), (194, 40)):
             disc(d, wx, wy, 2, MIDNIGHT)
     elif key == "shipfire":
         # Sparta II ablaze off Finland: grey sea, dark cargo ship,
@@ -678,8 +713,10 @@ def art(key, w, h):
         burst(d, 84, 48, 8, 3, (255, 140, 40))
         for wx in range(0, w, 24):
             seg(d, [(wx, 66), (wx + 12, 66)], "white")
-        d.ellipse((60, 20, 70, 26), fill=(90, 95, 105))
-        seg(d, [(52, 18), (68, 18)], (200, 200, 210), 2)
+        # drone moved right so the compact place label (top-left
+        # inside the picture) does not cover it.
+        d.ellipse((150, 20, 160, 26), fill=(90, 95, 105))
+        seg(d, [(142, 18), (158, 18)], (200, 200, 210), 2)
     elif key == "factoryfire":
         # Candy-factory fire in Cikande: sawtooth roof, fire bursting
         # through, smoke drifting right, one glowing window.
@@ -775,9 +812,11 @@ def art(key, w, h):
         # closing door, a gavel on the desk.
         box(d, 0, 0, w, h, (200, 200, 210))
         box(d, 0, 60, w, h, (120, 110, 100))
-        box(d, 30, 22, 90, 60, (90, 60, 40))
-        d.rectangle((30, 22, 90, 60), outline=(60, 40, 20), width=2)
-        disc(d, 78, 41, 4, GILT)
+        # door moved down so its top clears the compact place
+        # label (top-left inside the picture).
+        box(d, 30, 26, 90, 60, (90, 60, 40))
+        d.rectangle((30, 26, 90, 60), outline=(60, 40, 20), width=2)
+        disc(d, 78, 43, 4, GILT)
         box(d, 110, 26, 170, 60, (150, 140, 130))
         d.rectangle((110, 26, 170, 60), outline=(90, 80, 70), width=2)
         box(d, 118, 34, 140, 52, (200, 200, 210))
@@ -792,25 +831,30 @@ def art(key, w, h):
         for sx, sy in ((20, 14), (60, 10), (110, 16), (160, 12),
                        (185, 20), (40, 30), (140, 28)):
             disc(d, sx, sy, 1, "white")
-        poly(d, [(92, 20), (104, 20), (108, 48), (88, 48)], "white")
-        poly(d, [(98, 8), (104, 20), (92, 20)], SCARLET)
-        poly(d, [(88, 48), (80, 60), (88, 54)], (200, 200, 210))
-        poly(d, [(108, 48), (116, 60), (108, 54)], (200, 200, 210))
-        burst(d, 98, 62, 8, 3, (255, 180, 60))
-        ring(d, 140, 30, 180, 62, GILT, 2)
-        disc(d, 160, 46, 6, GILT)
-        txt(d, (160, 46), "24", TY.slabssm, BLACK, anchor="mm")
+        # rocket + station shifted down 6px so the rocket tip
+        # clears the compact place label (top-left inside the
+        # picture).
+        poly(d, [(92, 26), (104, 26), (108, 54), (88, 54)], "white")
+        poly(d, [(98, 14), (104, 26), (92, 26)], SCARLET)
+        poly(d, [(88, 54), (80, 66), (88, 60)], (200, 200, 210))
+        poly(d, [(108, 54), (116, 66), (108, 60)], (200, 200, 210))
+        burst(d, 98, 68, 8, 3, (255, 180, 60))
+        ring(d, 140, 36, 180, 68, GILT, 2)
+        disc(d, 160, 52, 6, GILT)
+        txt(d, (160, 52), "24", TY.slabssm, BLACK, anchor="mm")
     elif key == "handshake":
         # Kenya and DR Congo restore ties: two flags on poles, two
         # hands meeting in the middle.
         box(d, 0, 0, w, h, (200, 220, 235))
         box(d, 0, 58, w, h, (90, 90, 98))
+        # flags moved down so their tops clear the compact place
+        # label (top-left inside the picture).
         for fx, cols in ((20, ((0, 0, 0), (200, 30, 40), (0, 130, 60))),
                          (150, ((0, 60, 160), (255, 210, 31), (200, 30, 40)))):
-            seg(d, [(fx, 22), (fx, 58)], (60, 60, 60), 2)
-            box(d, fx, 22, fx + 24, 30, cols[0])
-            box(d, fx, 30, fx + 24, 38, cols[1])
-            box(d, fx, 38, fx + 24, 46, cols[2])
+            seg(d, [(fx, 26), (fx, 58)], (60, 60, 60), 2)
+            box(d, fx, 26, fx + 24, 34, cols[0])
+            box(d, fx, 34, fx + 24, 42, cols[1])
+            box(d, fx, 42, fx + 24, 50, cols[2])
         poly(d, [(70, 40), (98, 34), (104, 40), (98, 46), (76, 48)],
              (200, 170, 140), outline=(120, 90, 60))
         poly(d, [(126, 40), (98, 34), (92, 40), (98, 46), (120, 48)],
@@ -832,21 +876,30 @@ def minipic(key):
     return art(key, SW, 80).resize((SW, SA), Image.LANCZOS)
 
 
-def topbar(d, x, y, w, num, place, country, region, vtag):
-    """Bagarte's number+place bar across the top of a picture:
-    a WHITE box, the number in a disc coloured by the story's
-    region, place + country in black bold caps. The status pill
-    no longer sits here — it lives at the bottom-right corner of
-    the picture (bagarte). Text shrinks until it fits."""
-    box(d, x, y, x + w, y + 18, "white")
-    disc(d, x + 11, y + 9, 7, REGION_COLOUR[region])
-    txt(d, (x + 11, y + 9), str(num), TY.tag, "white", anchor="mm")
+def topbar(d, x, y, w, num, place, country, region, vtag, font,
+           boxh, discr, pad):
+    """Bagarte's compact number+place label: a WHITE box fitted to
+    the text length only (never full width), placed at the top-left
+    INSIDE the picture, with a thin ink outline. The number sits
+    in a disc coloured by the story's region, place + country in
+    black bold caps. The art's top-left is kept clear for it (see
+    the art functions). Text shrinks until it fits."""
     label = place + (", " + country if country else "")
-    fb = TY.slab
-    while d.textlength(label, font=fb) > w - 30 and fb.size > 8:
-        fb = ImageFont.truetype(
-            os.path.join(NOTO, "NotoSans-Black.ttf"), fb.size - 1)
-    txt(d, (x + 22, y + 9), label, fb, BLACK, anchor="lm")
+    f = font
+    while d.textlength(label, font=f) > w - 40 and f.size > 8:
+        f = ImageFont.truetype(
+            os.path.join(NOTO, "NotoSans-Black.ttf"), f.size - 1)
+    tw = int(d.textlength(label, font=f))
+    bw = pad + discr * 2 + 4 + tw + pad
+    bx, by = x + pad, y + pad
+    d.rectangle((bx, by, bx + bw, by + boxh), fill="white",
+                outline=BLACK, width=1)
+    disc(d, bx + pad + discr, by + boxh // 2, discr,
+         REGION_COLOUR[region])
+    txt(d, (bx + pad + discr, by + boxh // 2), str(num), TY.tag,
+        "white", anchor="mm")
+    txt(d, (bx + pad + discr * 2 + 4, by + boxh // 2), label, f,
+        BLACK, anchor="lm")
 
 
 def pill_br(d, x, y, w, h, vtag):
@@ -874,18 +927,19 @@ def hero_card(img, d, story, x, y, w):
     img.paste(pic, (x, y))
     d2 = ImageDraw.Draw(img)
     topbar(d2, x, y, w, num, place, COUNTRY_OF[num], REGION_OF[num],
-           vtag)
+           vtag, TY.slab, 18, 7, 4)
     pill_br(d2, x, y, w, HA, vtag)
     ty = y + HA + 6
     region = REGION_OF[num]
     txt(d, (x + 8, ty),
         "%s · %s" % (region_label(region), topic), TY.topic,
         REGION_COLOUR[region])
-    hl = wrap(d, head, TY.hhead, w - 16, 3)
+    hl = wrap(d, head, TY.hhead, w - 20, 3)
     dl = wrap(d, deck, TY.hdeck, w - 16, 3)
     hy = ty + 16
     for j, ln in enumerate(hl):
-        txt(d, (x + 8, hy + j * 29), ln, TY.hhead, BLACK)
+        txt(d, (x + 8, hy + j * 29), ln, TY.hhead, BLACK, stroke=1,
+            stroke_fill=BLACK)
     dy = hy + len(hl) * 29 + 2
     for j, ln in enumerate(dl):
         txt(d, (x + 8, dy + j * 14), ln, TY.hdeck, (60, 60, 60))
@@ -906,16 +960,17 @@ def small_card(img, d, story, x, y):
     img.paste(pic, (x, y))
     d2 = ImageDraw.Draw(img)
     topbar(d2, x, y, w, num, place, COUNTRY_OF[num], REGION_OF[num],
-           vtag)
+           vtag, TY.slab10, 15, 6, 3)
     pill_br(d2, x, y, w, SA, vtag)
     ty = y + SA + 5
     region = REGION_OF[num]
     txt(d, (x + 8, ty),
         "%s · %s" % (region_label(region), topic), TY.topicsm,
         REGION_COLOUR[region])
-    hl = wrap(d, head, TY.shead, w - 16, 2)
+    hl = wrap(d, head, TY.shead, w - 20, 2)
     for j, ln in enumerate(hl):
-        txt(d, (x + 8, ty + 14 + j * 20), ln, TY.shead, BLACK)
+        txt(d, (x + 8, ty + 14 + j * 20), ln, TY.shead, BLACK,
+            stroke=1, stroke_fill=BLACK)
     dl = wrap(d, deck + " — " + src, TY.sdeck, w - 16, 2)
     for j, ln in enumerate(dl):
         txt(d, (x + 8, ty + 15 + len(hl) * 20 + j * 12), ln,
@@ -1039,10 +1094,13 @@ def build():
     # horizontally to 996px so its ink top sits at 24 (ink 24-110,
     # 86px tall, matching bagarte). ----
     title = "Monday 23 November 2026"
-    lw = int(d.textlength(title, font=TY.mast)) + 8
+    lw = int(d.textlength(title, font=TY.mast)) + 12
     layer = Image.new("RGBA", (lw, 150), (0, 0, 0, 0))
     lt = ImageDraw.Draw(layer)
-    lt.text((4, 0), title, font=TY.mast, fill=BLACK + (255,))
+    # BOLD: a 2px stroke on the Didone Black so the masthead reads
+    # as heavy as bagarte's (the thin Didone strokes are thickened).
+    lt.text((4, 0), title, font=TY.mast, fill=BLACK + (255,),
+            stroke_width=2, stroke_fill=BLACK + (255,))
     ink_top = layer.getbbox()[1]
     layer = layer.resize((996, 150), Image.LANCZOS)
     img.paste(layer, (MX, 24 - ink_top), layer)
@@ -1067,14 +1125,14 @@ def build():
         txt(d, (sx + w / 2, by + 9), "%s %d" % (label, count),
             TY.strip, ink, anchor="mm")
         sx += w + gap
-    # ---- UTC timeline 172-192: a full-width dark-navy bar
-    # (bagarte) — a red UTC box at the left, then the six
-    # time+event pairs spread across the whole width to the right
-    # edge (gold bold time, white event, middot separators).
+    # ---- UTC timeline 172-188: a LIGHT row (cream, bagarte) — a
+    # small RED box for "UTC" only, then the six time+event pairs
+    # on the light row (dark-red bold time, dark event, middot
+    # separators). The row ends at x=1000, before the right grey
+    # border line (RX=1012); it never touches it.
     tl_y = 172
-    box(d, MX, tl_y, RX, tl_y + 20, MIDNIGHT)
-    box(d, MX, tl_y, 58, tl_y + 20, SCARLET)
-    txt(d, (35, tl_y + 10), "UTC", TY.src, "white", anchor="mm")
+    box(d, MX, tl_y, MX + 34, tl_y + 16, SCARLET)
+    txt(d, (MX + 17, tl_y + 8), "UTC", TY.src, "white", anchor="mm")
     timeline = [("05:30", "Modi meets Shah"),
                 ("06:00", "COP31 ends, no deal"),
                 ("09:00", "Iran vows blockade break"),
@@ -1083,8 +1141,7 @@ def build():
                 ("19:00", "Democrats clinch 258")]
     # Natural width of all items + separators; the slack is spread
     # evenly into the five gaps (remainder to the first gaps) so
-    # the last item ends exactly at the right edge.
-    GOLD = (238, 198, 110)
+    # the last item ends exactly at x=1000.
     sep = "  ·  "
     sepw = int(d.textlength(sep, font=TY.tl))
     nat = 0
@@ -1092,20 +1149,18 @@ def build():
         nat += int(d.textlength(tt, font=TY.tl))
         nat += int(d.textlength(" " + ev, font=TY.tlev))
     nat += sepw * (len(timeline) - 1)
-    extra = (RX - 66) - nat
+    extra = (1000 - (MX + 42)) - nat
     ngap = len(timeline) - 1
     gap = extra // ngap if ngap else 0
     rem = extra % ngap if ngap else 0
-    tx = 66
+    tx = MX + 42
     for i, (tt, ev) in enumerate(timeline):
-        txt(d, (tx, tl_y + 10), tt, TY.tl, GOLD, anchor="lm")
+        txt(d, (tx, tl_y + 8), tt, TY.tl, WINE, anchor="lm")
         tx += int(d.textlength(tt, font=TY.tl))
-        txt(d, (tx, tl_y + 10), " " + ev, TY.tlev, "white",
-            anchor="lm")
+        txt(d, (tx, tl_y + 8), " " + ev, TY.tlev, BLACK, anchor="lm")
         tx += int(d.textlength(" " + ev, font=TY.tlev))
         if i < len(timeline) - 1:
-            txt(d, (tx, tl_y + 10), sep, TY.tl, (150, 160, 180),
-                anchor="lm")
+            txt(d, (tx, tl_y + 8), sep, TY.tl, ASH, anchor="lm")
             tx += sepw + gap + (1 if i < rem else 0)
     # ---- heroes 200-452: three 260px leads, then the numbers box. ----
     hx = MX
@@ -1120,7 +1175,13 @@ def build():
             k = 3 + r * 5 + c
             small_card(img, d, FRONT[k], MX + c * 204,
                        SY + r * SR)
-    # ---- also-list (left) + map (right) 768-948. ----
+    # ---- also-list (left) + map (right) 768-948. Each also item
+    # is now TWO lines (bagarte): the main line, then a small grey
+    # sub-line (detail + source) below it. The two lines share a
+    # 19px row, so the main is 10px and the sub is 7px with 1px
+    # gaps (main y..y+10, sub y+11..y+18, next main y+19): the
+    # rows never touch. 8 rows per column, starting at MY+18, so
+    # the last sub-line ends just before DATE CHECK.
     txt(d, (MX, MY), "ALSO ON MONDAY 23 NOVEMBER", TY.sect, BLACK)
     txt(d, (652, MY), "16 MORE STORIES", TY.sect, BLACK, anchor="ra")
     seg(d, [(MX, MY + 16), (652, MY + 16)], BLACK, 1)
@@ -1129,23 +1190,30 @@ def build():
         col_i = 0 if i < rows else 1
         row = i if i < rows else i - rows
         x = MX + col_i * (col_w + 18)
-        y = MY + 22 + row * 13
+        y = MY + 18 + row * 19
         txt(d, (x, y), "%d." % num, TY.alsonum,
             REGION_COLOUR[ALSO_REGION[num]])
         # Bagarte gives each also item a small flag of its country
-        # before the text; the text stays on one line.
+        # before the text; the text stays on one line. The source
+        # moved to the sub-line below (bagarte).
         flag(d, FLAG_OF[num], x + 20, y, 16, 11)
-        full = "%s: %s (%s)" % (city, line, src)
-        lines = wrap(d, full, TY.also, col_w - 40, 1)
-        txt(d, (x + 40, y), lines[0] if lines else "", TY.also, BLACK)
+        full = "%s: %s" % (city, line)
+        lines = wrap(d, full, TY.also10, col_w - 40, 1)
+        txt(d, (x + 40, y), lines[0] if lines else "", TY.also10,
+            BLACK)
+        sub = "%s · %s" % (ALSO_SUB[num], src)
+        txt(d, (x + 40, y + 11), sub, TY.alsosub7, ASH)
     map_x, map_w, map_h = 680, 332, 148
-    txt(d, (map_x, MY), "WHERE IT HAPPENED", TY.sect, BLACK)
-    txt(d, (RX, MY), "pins = story numbers", TY.src, ASH, anchor="ra")
-    seg(d, [(map_x, MY + 16), (RX, MY + 16)], BLACK, 1)
-    box(d, map_x, MY + 22, map_x + map_w, MY + 22 + map_h, SEA)
-    d.rectangle((map_x, MY + 22, map_x + map_w, MY + 22 + map_h),
-                outline=EDGE, width=1)
+    # WHERE IT HAPPENED now sits INSIDE the map panel (bagarte):
+    # the map box spans MY..MY+170, the label at the top inside
+    # it, and the dotted map fills the lower part (MY+22..).
+    box(d, map_x, MY, map_x + map_w, MY + 170, SEA)
+    d.rectangle((map_x, MY, map_x + map_w, MY + 170), outline=EDGE,
+                width=1)
     draw_map(d, map_x, MY + 22, map_w, map_h)
+    txt(d, (map_x + 8, MY + 8), "WHERE IT HAPPENED", TY.sect, BLACK)
+    txt(d, (RX - 8, MY + 8), "pins = story numbers", TY.src, ASH,
+        anchor="ra")
     # ---- date check 942-992: a strong red box (bagarte) — the
     # DATE CHECK label in a solid red box with white bold text,
     # the lead sentence in larger bold black, the "Left out" and
