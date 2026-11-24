@@ -216,25 +216,27 @@ FRONT = [
      "FULL TIES", "NAIROBI–KINSHASA", "handshake", "REPORTED"),
 ]
 
-# Also-list: (no, city, one line, outlet). Each line is sized to fit a
-# 310px column (288px of text) at 11px bold. All 16 are Monday stories.
+# Also-list: (no, city, one line, outlet). THREE columns (bagarte),
+# each 200px wide (160px of text) at 10px bold, so every main line
+# is shortened to fit 160px (measured, all <=158px). All 16 are
+# Monday stories.
 ALSO = [
     (14, "Antalya", "COP31 chief blames EU", "REUTERS"),
     (15, "Riyadh", "Houthi missile downed", "REUTERS"),
-    (16, "Tehran", "Parastoo Ahmadi gets 74 lashes", "AP"),
-    (17, "Washington", "Trump blasts Newsom", "AP"),
-    (18, "Kyiv", "Zelensky urges peace talks", "REUTERS"),
-    (19, "Manchester", "Thousands flee scare", "AP"),
-    (20, "US", "Storms threaten Thanksgiving travel", "AP"),
-    (21, "Washington", "Democrats plan 12 debates", "AP"),
-    (22, "Dhaka", "Hasina plans return from exile", "REUTERS"),
-    (23, "Canberra", "Albanese defends Bowen", "AP"),
-    (24, "Juba", "SPLA-IO attack kills 24 civilians", "AP"),
-    (25, "Congo", "Ebola response disrupted", "REUTERS"),
+    (16, "Tehran", "Ahmadi gets 74 lashes", "AP"),
+    (17, "Washington", "Trump vs Newsom", "AP"),
+    (18, "Kyiv", "Zelensky urges talks", "REUTERS"),
+    (19, "Manchester", "Thousands flee", "AP"),
+    (20, "US", "Storms hit Thanksgiving", "AP"),
+    (21, "Washington", "Dems plan debate", "AP"),
+    (22, "Dhaka", "Hasina plans return", "REUTERS"),
+    (23, "Canberra", "PM defends Bowen", "AP"),
+    (24, "Juba", "Attack kills 24 civilians", "AP"),
+    (25, "Congo", "Ebola response hit", "REUTERS"),
     (26, "Lisbon", "March over living costs", "REUTERS"),
-    (27, "Myanmar", "ASEAN decision 'unfair'", "REUTERS"),
-    (28, "Warsaw", "Russia 'tried twice to kill rapper'", "AP"),
-    (29, "Brussels", "EU keeps €100bn for Ukraine", "REUTERS"),
+    (27, "Myanmar", "ASEAN move 'unfair'", "REUTERS"),
+    (28, "Warsaw", "Russia targets rapper", "AP"),
+    (29, "Brussels", "EU keeps Ukraine aid", "REUTERS"),
 ]
 
 # Six numbers for the dark-navy box — one big figure per top story.
@@ -1135,14 +1137,21 @@ def build():
         txt(d, (sx + w / 2, by + 9), "%s %d" % (label, count),
             TY.strip, ink, anchor="mm")
         sx += w + gap
-    # ---- UTC timeline 172-188: a LIGHT row (cream, bagarte) — a
-    # small RED box for "UTC" only, then the six time+event pairs
-    # on the light row (dark-red bold time, dark event, middot
-    # separators). The row ends at x=1000, before the right grey
-    # border line (RX=1012); it never touches it.
+    # ---- UTC timeline 172-192: a DARK NAVY band (bagarte) — the
+    # timeline reads as a distinct horizontal LINE. Pixel sampling
+    # proved bagarte's UTC row is a dark-navy band (25,41,111) and
+    # our light row had NO band at all (plain cream 247,242,231),
+    # which is why it read as "just a red UTC box". A small RED box
+    # for "UTC" at the left, then the six time+event pairs (gold
+    # bold times, white events, middot separators) spread across
+    # the band. The band runs MX..1000 and never touches the right
+    # grey border line (RX=1012).
     tl_y = 172
-    box(d, MX, tl_y, MX + 34, tl_y + 16, SCARLET)
-    txt(d, (MX + 17, tl_y + 8), "UTC", TY.src, "white", anchor="mm")
+    tl_h = 20
+    box(d, MX, tl_y, 1000, tl_y + tl_h, MIDNIGHT)
+    box(d, MX, tl_y, MX + 34, tl_y + tl_h, SCARLET)
+    txt(d, (MX + 17, tl_y + tl_h // 2), "UTC", TY.src, "white",
+        anchor="mm")
     timeline = [("05:30", "Modi meets Shah"),
                 ("06:00", "COP31 ends, no deal"),
                 ("09:00", "Iran vows blockade break"),
@@ -1165,12 +1174,14 @@ def build():
     rem = extra % ngap if ngap else 0
     tx = MX + 42
     for i, (tt, ev) in enumerate(timeline):
-        txt(d, (tx, tl_y + 8), tt, TY.tl, WINE, anchor="lm")
+        txt(d, (tx, tl_y + tl_h // 2), tt, TY.tl, GILT, anchor="lm")
         tx += int(d.textlength(tt, font=TY.tl))
-        txt(d, (tx, tl_y + 8), " " + ev, TY.tlev, BLACK, anchor="lm")
+        txt(d, (tx, tl_y + tl_h // 2), " " + ev, TY.tlev, "white",
+            anchor="lm")
         tx += int(d.textlength(" " + ev, font=TY.tlev))
         if i < len(timeline) - 1:
-            txt(d, (tx, tl_y + 8), sep, TY.tl, ASH, anchor="lm")
+            txt(d, (tx, tl_y + tl_h // 2), sep, TY.tl, GILT,
+                anchor="lm")
             tx += sepw + gap + (1 if i < rem else 0)
     # ---- heroes 200-452: three 260px leads, then the numbers box. ----
     hx = MX
@@ -1185,22 +1196,44 @@ def build():
             k = 3 + r * 5 + c
             small_card(img, d, FRONT[k], MX + c * 204,
                        SY + r * SR)
-    # ---- also-list (left) + map (right) 768-948. Each also item
-    # is now TWO lines (bagarte): the main line, then a small grey
-    # sub-line (detail + source) below it. The two lines share a
-    # 19px row, so the main is 10px and the sub is 7px with 1px
-    # gaps (main y..y+10, sub y+11..y+18, next main y+19): the
-    # rows never touch. 8 rows per column, starting at MY+18, so
-    # the last sub-line ends just before DATE CHECK.
+    # ---- also-list (left) + map (right) 768-948. THREE columns
+    # (bagarte): col 1 = 14-19, col 2 = 20-24, col 3 = 25-29.
+    # Each also item is TWO lines (bagarte): the main line, then a
+    # small grey sub-line (detail + source) below it. The two lines
+    # share a 24px row (main 10px, sub 7px), so the tallest column
+    # (6 items) ends near the map bottom without overflowing into
+    # DATE CHECK.
     txt(d, (MX, MY), "ALSO ON MONDAY 23 NOVEMBER", TY.sect, BLACK)
-    txt(d, (652, MY), "16 MORE STORIES", TY.sect, BLACK, anchor="ra")
+    # Status legend pills (bagarte) at the top-right of the
+    # also-list header: REPORTED green, CLAIM orange, ONGOING blue
+    # (ONGOING is blue in bagarte, not the amber of the card-pill
+    # table). Drawn right-to-left so they read REPORTED, CLAIM,
+    # ONGOING left to right. The "16 MORE STORIES" count sits just
+    # left of the pills.
+    _px = 652
+    for _lab, _fill in (("ONGOING", AZURE), ("CLAIM", TANGERINE),
+                        ("REPORTED", LEAF)):
+        _tw = int(d.textlength(_lab, font=TY.tag))
+        _pw = _tw + 12
+        _x0 = _px - _pw
+        d.rounded_rectangle((_x0, MY - 1, _px, MY + 13), radius=2,
+                            fill=_fill)
+        txt(d, (_x0 + _pw / 2, MY + 6), _lab, TY.tag, "white",
+            anchor="mm")
+        _px = _x0 - 6
+    txt(d, (_px - 6, MY), "16 MORE STORIES", TY.sect, BLACK,
+        anchor="ra")
     seg(d, [(MX, MY + 16), (652, MY + 16)], BLACK, 1)
-    col_w, rows = 310, 8
+    col_w, col_gap, pitch = 200, 20, 24
     for i, (num, city, line, src) in enumerate(ALSO):
-        col_i = 0 if i < rows else 1
-        row = i if i < rows else i - rows
-        x = MX + col_i * (col_w + 18)
-        y = MY + 18 + row * 19
+        if num <= 19:
+            col_i, row = 0, num - 14
+        elif num <= 24:
+            col_i, row = 1, num - 20
+        else:
+            col_i, row = 2, num - 25
+        x = MX + col_i * (col_w + col_gap)
+        y = MY + 18 + row * pitch
         txt(d, (x, y), "%d." % num, TY.alsonum,
             REGION_COLOUR[ALSO_REGION[num]])
         # Bagarte gives each also item a small flag of its country
